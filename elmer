@@ -80,7 +80,8 @@ our %errors = (
 	expire => 3,		# Expire unavailable for service
 	noinput => 4,		# No input to paste (file or stdin)
 	file => 5,		# File cannot be read
-	program => 6		# Cannot find wget or curl
+	program => 6,		# Cannot find wget or curl
+	paste => 7		# Paste failed
 );
 
 sub mydie($$) {
@@ -104,11 +105,38 @@ sub print_langs($$) {
 	exit(0);
 }
 
+sub print_exp($$) {
+	my $service = shift;
+	my %exp = %{$_[0]};
+	
+	print "Available expirations for $service:\n";
+	
+	foreach (sort(keys(%exp))) {
+		print "\t", $_, "\n";
+	}
+	
+	exit(0);
+}
+
+sub post($$) {
+	my $host = shift;
+	my $data = shift;
+	my $curl = $O{'curl'};
+	
+	if (not $curl && `which wget` eq "/usr/bin/wget\n") {
+		return `wget -O - --quiet $host --post-data="$data"`;
+	} elsif ($curl && `which curl` eq "/usr/bin/curl\n") {
+		return `curl --silent $host -d "$data"`;
+	} else {
+		mydie('Could not find wget or curl.', $errors{'program'});
+	}
+}	
+
 sub codepad($) {
 	my $text = shift;
 	my $lang = $O{'language'} || 'plain';
-	my $run = $O{'run'};
-	my $private = $O{'private'};
+	my $run = $O{'run'};	# True or False
+	my $private = $O{'private'};	#True or False
 	
 	my %langs = (
 		c => 'C',
@@ -128,6 +156,7 @@ sub codepad($) {
 	
 	if ($text eq 'langs') { print_langs('codepad', \%langs); }
 	
+	$lang = lc $lang;
 	if (not $langs{$lang}) { mydie("Language $lang not available for codepad.\nTry `elmer -L codepad`.", $errors{'language'}); }
 	else { $lang = $langs{$lang}; }
 	
@@ -139,32 +168,134 @@ sub codepad($) {
 	
 	$text = uri_escape($text);
 	
-	my $response = "";
-	if (`which wget` eq "/usr/bin/wget\n") {
-		$response = `wget -O - --quiet --tries=5 --timeout=60 http://codepad.org --post-data="client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit"`;
-	} elsif (`which curl` eq "/usr/bin/curl\n") {
-		$response = `curl --silent http://codepad.org -d "client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit"`;
-	} else {
-		mydie('Could not find wget or curl.', $errors{'program'});
-	}
+	my $data = "client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit";
+	my $response = post('http://codepad.org', $data);
 	
 	my @lines = split('\n', $response);
-	
 	foreach (@lines) {
 		if ($_ =~ m/(http:\/\/codepad.org\/\w+)/) {
 			print "Pasted: $1\n";
 			exit(0);
 		}
 	}
+	
+	mydie('Paste failed!', $errors{'paste'});
 }
 
-
+sub pbcom($) {
+	my $text = shift;
+	my $lang = $O{'language'} || 'plain';
+	my $expiration = $O{'expiration'} || '1d';
+	my $private = $O{'private'};	# 0 or 1
+	my $title = $O{'title'};
+	
+	my %langs = (
+		ada => 3,
+		apache => 4,
+		apple => 5,
+		apt => 75,
+		asm => 6,
+		asp => 7,
+		bash => 8,
+		brainfuck => 79,
+		c => 9,
+		'c#' => 14,
+		'c++' => 13,
+		cmake => 83,
+		cobol => 84,
+		coldfusion => 15,
+		css => 16,
+		d => 17,
+		delphi => 18,
+		diff => 19,
+		dos => 20,
+		eiffel => 21,
+		email => 88,
+		erlang => 57,
+		fortran => 22,
+		freebasic => 23,
+		gettext => 90,
+		haskell => 60,
+		html => 25,
+		ini => 26,
+		intercal => 95,
+		java => 27,
+		java5 => 97,
+		javascript => 28,
+		latex => 62,
+		lisp => 29,
+		lua => 30,
+		make => 106,
+		matlab => 31,
+		mirc => 66,
+		modula3 => 107,
+		mxml => 108,
+		mysql => 33,
+		plain => 1,
+		ojbc => 35,
+		ocaml => 36,
+		pascal => 39,
+		perl => 40,
+		php => 41,
+		powersh => 117,
+		prolog => 119,
+		python => 42,
+		qbasic => 43,
+		rails => 67,
+		ruby => 45,
+		scala => 125,
+		scheme => 46,
+		scilab => 126,
+		smalltalk => 69,
+		sql => 48,
+		tcl => 49,
+		unreal => 71,
+		vbnet => 51,
+		vim => 134,
+		vbasic => 50,
+		whois => 137,
+		xml => 53,
+		xorg => 139
+	);
+	
+	my %expirations = (
+		never => 'N',
+		'10m' => '10M',
+		'1h' => '1H',
+		'1d' => '1D',
+		'1m' => '1M'
+	);
+	
+	if ($text eq 'langs') { print_langs('pbcom', \%langs); }
+	if ($text eq 'exp') { print_exp('pbcom', \%expirations); }
+	
+	$lang = lc $lang;
+	if (not $langs{$lang}) { mydie("Language $lang not available for pbcom.\nTry `elmer -L pbcom`.", $errors{'language'}); }
+	else { $lang = $langs{$lang}; }
+	
+	$expiration = lc $expiration;
+	if (not $expirations{$expiration}) { mydie("Expiration $expiration not available for pbcom.\nTry `elmer -E pbcom`.", $errors{'expire'}); }
+	else { $expiration = $expirations{$expiration}; }
+	
+	$text = uri_escape($text);
+	
+	my $data = "client=elmer&paste_format=$lang&paste_expire_date=$expiration&paste_private=$private&paste_name=$title&paste_code=$text&submit=submit";
+	my $response = post('http://pastebin.com/post.php', $data);
+	
+	my @lines = split('\n', $response);
+	foreach (@lines) {
+		if ($_ =~ m/(http:\/\/pastebin.com\/\w+)/) {
+			print "Pasted: $1\n";
+			exit(0);
+		}
+	}
+}
 
 if ($O{'languages'}) {
 	use Switch;
 	switch ($O{'languages'}) {
 		case 'codepad'		{ codepad('langs'); }
-# 		case 'pbcom'		{ pbcom('langs'); }
+		case 'pbcom'		{ pbcom('langs'); }
 # 		case 'pborg'		{ pborg('langs'); }
 # 		case 'pbws'		{ pbws('langs'); }
 # 		case 'lodgeit'		{ lodgeit('langs'); }
@@ -174,7 +305,26 @@ if ($O{'languages'}) {
 # 		case 'util'		{ util('langs'); }
 # 		case 'paste2'		{ paste2('langs'); }
 # 		case 'pastie'		{ pastie('langs'); }
-		default		{ mydie("Service " . $O{'languages'} . " not available.\nTry `elmer -S`.", $errors{'service'}); }
+		default		{ mydie("No languages found for " . $O{'languages'} . ".", $errors{'language'}); }
+	}
+	
+	exit(0);
+}
+
+if ($O{'expirations'}) {
+	use Switch;
+	switch ($O{'expirations'}) {
+		case 'pbcom'		{ pbcom('exp'); }
+# 		case 'pborg'		{ pborg('exp'); }
+# 		case 'pbws'		{ pbws('exp'); }
+# 		case 'lodgeit'		{ lodgeit('exp'); }
+# 		case 'dpcom'		{ dpcom('exp'); }
+# 		case 'dporg'		{ dporg('exp'); }
+# 		case 'copy'		{ copy('exp'); }
+# 		case 'util'		{ util('exp'); }
+# 		case 'paste2'		{ paste2('exp'); }
+# 		case 'pastie'		{ pastie('exp'); }
+		default		{ mydie("No expirations found for " . $O{'expirations'} . ".", $errors{'expire'}); }
 	}
 	
 	exit(0);
@@ -186,5 +336,7 @@ if (-e $input) { $input = `cat $input` || mydie('File cannot be read.', $errors{
 use Switch;
 switch ($O{'service'}) {
 	case "codepad"		{ codepad($input); }
+	case "pbcom"		{ pbcom($input); }
 	case ""			{ codepad($input); }
+	default		{ mydie("Service " . $O{'service'} . " not available.", $errors{'service'}); }
 }
