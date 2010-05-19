@@ -43,8 +43,8 @@ if ($O{'help'}) {
 
 if ($O{'services'}) {
 	print	"Available services:\n",
-		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n";
- 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
+		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n",
+ 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n";
 # 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
 # 		"\t", 'pbws', "\t\t", 'http://pastebin.ws', "\t\t", 'Text', "\n",
 # 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
