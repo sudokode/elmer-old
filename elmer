@@ -1,0 +1,190 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Easy;
+use URI::Escape;
+
+get_options '	h-help
+
+		S-services
+		L-languages=
+		E-expirations=
+		o-options=
+
+		s-service=
+		l-language=
+		e-expiration=
+		p-private
+		r-run
+		t-title=
+		d-desc=
+		c-curl', 'usage: elmer [OPTIONS] [FILES]';
+
+if ($O{'help'}) {
+	print	"elmer -- the ultimate paste\n",
+		"\t", '-h', "\t", 'print this help menu', "\n\n",
+		
+		"\t", '-S', "\t", 'print services', "\n",
+		"\t", '-L', "\t", 'print languages for service', "\n",
+		"\t", '-E', "\t", 'print expirations for service', "\n",
+		"\t", '-o', "\t", 'print options for service', "\n\n",
+		
+		"\t", '-s', "\t", 'service (default: codepad)', "\n",
+		"\t", '-l', "\t", 'language (default: plain)', "\n",
+		"\t", '-e', "\t", 'expiration (default: 1 day)', "\n",
+		"\t", '-p', "\t", 'private', "\n",
+		"\t", '-r', "\t", 'run', "\n",
+		"\t", '-t', "\t", 'title', "\n",
+		"\t", '-d', "\t", 'description', "\n",
+		"\t", '-c', "\t", 'use curl instead of wget', "\n";
+	
+	exit(0);
+}
+
+if ($O{'services'}) {
+	print	"Available services:\n",
+		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n";
+# 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
+# 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
+# 		"\t", 'pbws', "\t\t", 'http://pastebin.ws', "\t\t", 'Text', "\n",
+# 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
+# 		"\t", 'dpcom', "\t\t", 'http://dpaste.com', "\t\t", 'Text', "\n",
+# 		"\t", 'dporg', "\t\t", 'http://dpaste.org', "\t\t", 'Text', "\n",
+# 		"\t", 'copy', "\t\t", 'http://copypastecode.com', "\t", 'Text', "\n",
+# 		"\t", 'util', "\t\t", 'http://utilitybase.com/paste', "\t", 'Text', "\n",
+# 		"\t", 'paste2', "\t\t", 'http://paste2.org/', "\t\t", 'Text', "\n",
+# 		"\t", 'pastie', "\t\t", 'http://pastie.org', "\t\t", 'Text', "\n",
+# 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
+# 		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Any', "\n",
+# 		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n";
+		
+	exit(0);
+}
+
+if ($O{'options'}) {
+	my %options = (
+		codepad => "languages private run",
+# 		pbcom => "languages expirations private title"
+	);
+	
+	print "Available options for ", $O{'options'}, ":\n\t";
+	my @opts = split(' ', $options{$O{'options'}});
+	print join("\n\t", @opts), "\n";
+	
+	exit(0);
+}
+
+our %errors = (
+	service => 1,		# Service unavailable
+	language => 2,		# Language unavailable for service
+	expire => 3,		# Expire unavailable for service
+	noinput => 4,		# No input to paste (file or stdin)
+	file => 5,		# File cannot be read
+	program => 6		# Cannot find wget or curl
+);
+
+sub mydie($$) {
+	my $msg = shift;
+	my $code = shift;
+	
+	print "$msg\n";
+	exit($code);
+}
+
+sub print_langs($$) {
+	my $service = shift;
+	my %langs = %{$_[0]};
+	
+	print "Available languages for $service:\n";
+	
+	foreach (sort(keys(%langs))) {
+		print "\t", $_, "\n";
+	}
+	
+	exit(0);
+}
+
+sub codepad($) {
+	my $text = shift;
+	my $lang = $O{'language'} || 'plain';
+	my $run = $O{'run'};
+	my $private = $O{'private'};
+	
+	my %langs = (
+		c => 'C',
+		'c++' => 'C++',
+		d => 'D',
+		haskell => 'Haskell',
+		lua => 'Lua',
+		ocaml => 'OCaml',
+		php => 'PHP',
+		perl => 'Perl',
+		plain => 'Plain Text',
+		python => 'Python',
+		ruby => 'Ruby',
+		scheme => 'Scheme',
+		tcl => 'Tcl'
+	);
+	
+	if ($text eq 'langs') { print_langs('codepad', \%langs); }
+	
+	if (not $langs{$lang}) { mydie("Language $lang not available for codepad.\nTry `elmer -L codepad`.", $errors{'language'}); }
+	else { $lang = $langs{$lang}; }
+	
+	if ($run) { $run = 'True'; }
+	else { $run = 'False'; }
+	
+	if ($private) { $private = 'True'; }
+	else { $private = 'False'; }
+	
+	$text = uri_escape($text);
+	
+	my $response = "";
+	if (`which wget` eq "/usr/bin/wget\n") {
+		$response = `wget -O - --quiet --tries=5 --timeout=60 http://codepad.org --post-data="client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit"`;
+	} elsif (`which curl` eq "/usr/bin/curl\n") {
+		$response = `curl --silent http://codepad.org -d "client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit"`;
+	} else {
+		mydie('Could not find wget or curl.', $errors{'program'});
+	}
+	
+	my @lines = split('\n', $response);
+	
+	foreach (@lines) {
+		if ($_ =~ m/(http:\/\/codepad.org\/\w+)/) {
+			print "Pasted: $1\n";
+			exit(0);
+		}
+	}
+}
+
+
+
+if ($O{'languages'}) {
+	use Switch;
+	switch ($O{'languages'}) {
+		case 'codepad'		{ codepad('langs'); }
+# 		case 'pbcom'		{ pbcom('langs'); }
+# 		case 'pborg'		{ pborg('langs'); }
+# 		case 'pbws'		{ pbws('langs'); }
+# 		case 'lodgeit'		{ lodgeit('langs'); }
+# 		case 'dpcom'		{ dpcom('langs'); }
+# 		case 'dporg'		{ dporg('langs'); }
+# 		case 'copy'		{ copy('langs'); }
+# 		case 'util'		{ util('langs'); }
+# 		case 'paste2'		{ paste2('langs'); }
+# 		case 'pastie'		{ pastie('langs'); }
+		default		{ mydie("Service " . $O{'languages'} . " not available.\nTry `elmer -S`.", $errors{'service'}); }
+	}
+	
+	exit(0);
+}
+
+my $input = shift or mydie('No input found.', $errors{'noinput'});
+if (-e $input) { $input = `cat $input` || mydie('File cannot be read.', $errors{'file'}); }
+
+use Switch;
+switch ($O{'service'}) {
+	case "codepad"		{ codepad($input); }
+	case ""			{ codepad($input); }
+}
