@@ -4,6 +4,7 @@ Services finished:
 
 	codepad.org
 	pastebin.com
+	pastebin.org
 
 
 Elmer is robust frontend to wget, curl, and perl's LWP for pastebin services.
