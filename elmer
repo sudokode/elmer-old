@@ -30,6 +30,7 @@ get_options '	h-help
 		e-expiration=
 		p-private
 		r-run
+		n-name=
 		t-title=
 		d-desc=
 		c-curl', 'usage: elmer [OPTIONS] [FILES]';
@@ -48,6 +49,7 @@ if ($O{'help'}) {
 		"\t", '-e', "\t", 'expiration (default: 1 day)', "\n",
 		"\t", '-p', "\t", 'private', "\n",
 		"\t", '-r', "\t", 'run', "\n",
+		"\t", '-n', "\t", 'name', "\n",
 		"\t", '-t', "\t", 'title', "\n",
 		"\t", '-d', "\t", 'description', "\n",
 		"\t", '-c', "\t", 'use curl instead of wget', "\n";
@@ -79,7 +81,7 @@ if ($O{'options'}) {
 	my %options = (
 		codepad => "languages private run",
 		pbcom => "languages expirations private title",
-		pborg => "languages expirations title"
+		pborg => "languages expirations name"
 	);
 	
 	print "Available options for ", $O{'options'}, ":\n\t";
@@ -225,7 +227,7 @@ sub pborg($) {
 	my $text = shift;
 	my $lang = $O{'language'} || 'plain';
 	my $expiration = $O{'expiration'} || '1d';
-	my $title = $O{'title'};
+	my $name = $O{'name'};
 	
 	my %langs = ('plain', 'text', 'action', 'actionscript', 'ada', 'ada', 'apache', 'apache', 'apple', 'applescript', 'asm', 'asm', 'asp', 'asp', 'bash', 'bash', 'c', 'c', 'c++', 'cpp', 'c#', 'csharp', 'coldfusion', 'cfm', 'css', 'css', 'd', 'd', 'delphi', 'delphi', 'diff', 'diff', 'dos', 'dos', 'eiffel', 'eiffel', 'fortran', 'fortran', 'freebasic', 'freebasic', 'html', 'html4strict', 'ini', 'ini', 'java', 'java', 'javascript', 'javascript', 'lisp', 'lisp', 'lua', 'lua', 'matlab', 'matlab', 'mpasm', 'mpasm', 'mysql', 'mysql', 'nullsoft', 'nsis', 'obj-c', 'objc', 'ocaml', 'ocaml', 'openoffice', 'oobas', 'oracle8', 'oracle8', 'pascal', 'pascal', 'perl', 'perl', 'php', 'php', 'python', 'python', 'qbasic', 'qbasic', 'robots', 'robots', 'ruby', 'ruby', 'scheme', 'scheme', 'smarty', 'smarty', 'sql', 'sql', 'tcl', 'tcl', 'vbasic', 'vb', 'vbnet', 'vbnet', 'xml', 'xml');
 	
@@ -244,7 +246,7 @@ sub pborg($) {
 	
 	$text = uri_escape($text);
 	
-	my $data = "client=elmer&format=$lang&code2=$text&poster=$title&expiry=$expiration&paste=Send";
+	my $data = "client=elmer&format=$lang&code2=$text&poster=$name&expiry=$expiration&paste=Send";
 	my $response = paste('http://pastebin.org/pastebin.php', $data);
 	
 	my @lines = split('\n', $response);
