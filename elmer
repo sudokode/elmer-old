@@ -58,8 +58,8 @@ if ($O{'help'}) {
 if ($O{'services'}) {
 	print	"Available services:\n",
 		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n",
- 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n";
-# 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
+		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
+		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n";
 # 		"\t", 'pbws', "\t\t", 'http://pastebin.ws', "\t\t", 'Text', "\n",
 # 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
 # 		"\t", 'dpcom', "\t\t", 'http://dpaste.com', "\t\t", 'Text', "\n",
@@ -78,7 +78,8 @@ if ($O{'services'}) {
 if ($O{'options'}) {
 	my %options = (
 		codepad => "languages private run",
-# 		pbcom => "languages expirations private title"
+		pbcom => "languages expirations private title",
+		pborg => "languages expirations title"
 	);
 	
 	print "Available options for ", $O{'options'}, ":\n\t";
@@ -132,7 +133,7 @@ sub print_exp($$) {
 	exit(0);
 }
 
-sub post($$) {
+sub paste($$) {
 	my $host = shift;
 	my $data = shift;
 	my $curl = $O{'curl'};
@@ -169,7 +170,7 @@ sub codepad($) {
 	$text = uri_escape($text);
 	
 	my $data = "client=elmer&run=$run&lang=$lang&private=$private&code=$text&submit=Submit";
-	my $response = post('http://codepad.org', $data);
+	my $response = paste('http://codepad.org', $data);
 	
 	my @lines = split('\n', $response);
 	foreach (@lines) {
@@ -189,9 +190,9 @@ sub pbcom($) {
 	my $private = $O{'private'};	# 0 or 1
 	my $title = $O{'title'};
 	
-	my %langs = ('ada', 3, 'apache', 4, 'apple', 5, 'apt', 75, 'asm', 6, 'asp', 7, 'bash', 8, 'brainfuck', 79, 'c', 9, 'c#', 14, 'c++', 13, 'cmake', 83, 'cobol', 84, 'coldfusion', 15, 'css', 16, 'd', 17, 'delphi', 18, 'diff', 19, 'dos', 20, 'eiffel', 21, 'email', 88, 'erlang', 57, 'fortran', 22, 'freebasic', 23, 'gettext', 90, 'haskell', 60, 'html', 25, 'ini', 26, 'intercal', 95, 'java', 27, 'java5', 97, 'javascript', 28, 'latex', 62, 'lisp', 29, 'lua', 30, 'make', 106, 'matlab', 31, 'mirc', 66, 'modula3', 107, 'mxml', 108, 'mysql', 33, 'plain', 1, 'ojbc', 35, 'ocaml', 36, 'pascal', 39, 'perl', 40, 'php', 41, 'powersh', 117, 'prolog', 119, 'python', 42, 'qbasic', 43, 'rails', 67, 'ruby', 45, 'scala', 125, 'scheme', 46, 'scilab', 126, 'smalltalk', 69, 'sql', 48, 'tcl', 49, 'unreal', 71, 'vbnet', 51, 'vim', 134, 'vbasic', 50, 'whois', 137, 'xml', 53, 'xorg', 139);
+	my %langs = ('action', 2, 'action3', 74, 'ada', 3, 'apache', 4, 'apple', 5, 'apt', 75, 'asm', 6, 'asp', 7, 'bash', 8, 'brainfuck', 79, 'c', 9, 'c#', 14, 'c++', 13, 'cmake', 83, 'cobol', 84, 'coldfusion', 15, 'css', 16, 'd', 17, 'delphi', 18, 'diff', 19, 'dos', 20, 'eiffel', 21, 'email', 88, 'erlang', 57, 'fortran', 22, 'freebasic', 23, 'gettext', 90, 'haskell', 60, 'html', 25, 'ini', 26, 'intercal', 95, 'java', 27, 'java5', 97, 'javascript', 28, 'latex', 62, 'lisp', 29, 'lua', 30, 'make', 106, 'matlab', 31, 'mirc', 66, 'modula3', 107, 'mxml', 108, 'mysql', 33, 'plain', 1, 'ojb-c', 35, 'ocaml', 36, 'pascal', 39, 'perl', 40, 'php', 41, 'powersh', 117, 'prolog', 119, 'python', 42, 'qbasic', 43, 'rails', 67, 'ruby', 45, 'scala', 125, 'scheme', 46, 'scilab', 126, 'smalltalk', 69, 'sql', 48, 'tcl', 49, 'unreal', 71, 'vbnet', 51, 'vim', 134, 'vbasic', 50, 'whois', 137, 'xml', 53, 'xorg', 139);
 	
-	my %expirations = ('never', 'N', '10m', '10M', '1h', '1H', '1d', '1D', '1m', '1M');
+	my %expirations = ('never', 'N', '10min', '10M', '1h', '1H', '1d', '1D', '1m', '1M');
 	
 	if ($text eq 'langs') { print_langs('pbcom', \%langs); }
 	if ($text eq 'exp') { print_exp('pbcom', \%expirations); }
@@ -207,11 +208,48 @@ sub pbcom($) {
 	$text = uri_escape($text);
 	
 	my $data = "client=elmer&paste_format=$lang&paste_expire_date=$expiration&paste_private=$private&paste_name=$title&paste_code=$text&submit=submit";
-	my $response = post('http://pastebin.com/post.php', $data);
+	my $response = paste('http://pastebin.com/post.php', $data);
 	
 	my @lines = split('\n', $response);
 	foreach (@lines) {
 		if ($_ =~ m/(http:\/\/pastebin.com\/\w+)/) {
+			print "Pasted: $1\n";
+			exit(0);
+		}
+	}
+	
+	error('Paste failed!', $errors{'paste'});
+}
+
+sub pborg($) {
+	my $text = shift;
+	my $lang = $O{'language'} || 'plain';
+	my $expiration = $O{'expiration'} || '1d';
+	my $title = $O{'title'};
+	
+	my %langs = ('plain', 'text', 'action', 'actionscript', 'ada', 'ada', 'apache', 'apache', 'apple', 'applescript', 'asm', 'asm', 'asp', 'asp', 'bash', 'bash', 'c', 'c', 'c++', 'cpp', 'c#', 'csharp', 'coldfusion', 'cfm', 'css', 'css', 'd', 'd', 'delphi', 'delphi', 'diff', 'diff', 'dos', 'dos', 'eiffel', 'eiffel', 'fortran', 'fortran', 'freebasic', 'freebasic', 'html', 'html4strict', 'ini', 'ini', 'java', 'java', 'javascript', 'javascript', 'lisp', 'lisp', 'lua', 'lua', 'matlab', 'matlab', 'mpasm', 'mpasm', 'mysql', 'mysql', 'nullsoft', 'nsis', 'obj-c', 'objc', 'ocaml', 'ocaml', 'openoffice', 'oobas', 'oracle8', 'oracle8', 'pascal', 'pascal', 'perl', 'perl', 'php', 'php', 'python', 'python', 'qbasic', 'qbasic', 'robots', 'robots', 'ruby', 'ruby', 'scheme', 'scheme', 'smarty', 'smarty', 'sql', 'sql', 'tcl', 'tcl', 'vbasic', 'vb', 'vbnet', 'vbnet', 'xml', 'xml');
+	
+	my %expirations = ('1d', 'd', '1m', 'm', 'forever', 'f');
+	
+	if ($text eq 'langs') { print_langs('pborg', \%langs); }
+	if ($text eq 'exp') { print_exp('pborg', \%expirations); }
+	
+	$lang = lc $lang;
+	if (not $langs{$lang}) { error("Language $lang not available for pborg.\nTry `elmer -L pborg`.", $errors{'language'}); }
+	else { $lang = $langs{$lang}; }
+	
+	$expiration = lc $expiration;
+	if (not $expirations{$expiration}) { error("Expiration $expiration not available for pborg.\nTry `elmer -E pborg`.", $errors{'expire'}); }
+	else { $expiration = $expirations{$expiration}; }
+	
+	$text = uri_escape($text);
+	
+	my $data = "client=elmer&format=$lang&code2=$text&poster=$title&expiry=$expiration&paste=Send";
+	my $response = paste('http://pastebin.org/pastebin.php', $data);
+	
+	my @lines = split('\n', $response);
+	foreach (@lines) {
+		if ($_ =~ m/(http:\/\/pastebin.org\/\w+)/) {
 			print "Pasted: $1\n";
 			exit(0);
 		}
@@ -225,7 +263,7 @@ if ($O{'languages'}) {
 	switch (lc $O{'languages'}) {
 		case 'codepad'		{ codepad('langs'); }
 		case 'pbcom'		{ pbcom('langs'); }
-# 		case 'pborg'		{ pborg('langs'); }
+		case 'pborg'		{ pborg('langs'); }
 # 		case 'pbws'		{ pbws('langs'); }
 # 		case 'lodgeit'		{ lodgeit('langs'); }
 # 		case 'dpcom'		{ dpcom('langs'); }
@@ -244,7 +282,7 @@ if ($O{'expirations'}) {
 	use Switch;
 	switch (lc $O{'expirations'}) {
 		case 'pbcom'		{ pbcom('exp'); }
-# 		case 'pborg'		{ pborg('exp'); }
+		case 'pborg'		{ pborg('exp'); }
 # 		case 'pbws'		{ pbws('exp'); }
 # 		case 'lodgeit'		{ lodgeit('exp'); }
 # 		case 'dpcom'		{ dpcom('exp'); }
@@ -266,6 +304,7 @@ use Switch;
 switch (lc $O{'service'}) {
 	case "codepad"		{ codepad($input); }
 	case "pbcom"		{ pbcom($input); }
+	case "pborg"		{ pborg($input); }
 	case ""			{ codepad($input); }
 	default		{ error("Service " . $O{'service'} . " not available.", $errors{'service'}); }
 }
