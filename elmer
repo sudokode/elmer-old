@@ -20,8 +20,7 @@ get_options '	h-help
 		t-title=
 		d-desc=
 		
-		c-curl
-		w-lwp', 'usage: elmer [OPTIONS] [FILES]';
+		c-curl', 'usage: elmer [OPTIONS] [FILES]';
 
 if ($O{'help'}) {
 	print	"elmer -- the ultimate paste\n",
