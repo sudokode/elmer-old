@@ -2,35 +2,14 @@ STILL IN DEVELOPMENT!
 
 Services finished:
 
-	codepad.org
-	pastebin.com
-	pastebin.org
-
-
-Elmer is a robust frontend to wget, curl, and perl's LWP for pastebin services.
-It supports (or will support) all of the major services and languages for those services,
-along with the other options that are easier to implement, such as private, run, and expiration,
-as well as a few lesser known services plus omploader and my own unreliable image paste (sudokode.net),
-which support more than just text/code.
-
-The real purpose of elmer is to move all of the simple scripts out there into one perl script that can
-support a number of methods to paste stuff. Thus there is no reason to, for example, install curl and
-lua to use curlpaste just because it supports a service you like instead of wgetpaste, even though wgetpaste
-is more portable since it uses bash and the more prevalent wget, though wgetpaste requires bash and some
-prefer zsh, etc. Another example is the ompload program to paste to omploader, which requires ruby. Since
-elmer uses perl and three different pasting methods, plus supports many more services, it should be easier
-to use by end users or to for a developer to include in a base system.
-
-Eventually, elmer will be much more portable, support more services, and allow for easier judgment on which
-paste method to use. For now, it's a simple hobby project of mine, though still useful, especially to me.
-
+	codepad.org	   (codepad)
+	pastebin.com	   (pbcom)
+	pastebin.org	   (pborg)
+	paste.pocoo.org	   (lodgeit)
 
 Dependencies include:
 
 	Getopt::Easy (for the command line options) [REQUIRED]
 		http://search.cpan.org/~jonbj/Getopt-Easy-0.1/lib/Getopt/Easy.pm
-	
-	wget (for pasting with wget) [OPTION 1/3]
-	curl (for pasting with curl) [OPTION 2/3]
-	LWP (for pasting with LWP) [OPTION 3/3] 
-		http://search.cpan.org/~gaas/libwww-perl-5.836/lib/LWP.pm
+	wget (for pasting with wget) [OPTION 1/2]
+	curl (for pasting with curl) [OPTION 2/2]
