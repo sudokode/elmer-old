@@ -40,8 +40,7 @@ if ($O{'help'}) {
 		"\t", '-t', "\t", 'title', "\n",
 		"\t", '-d', "\t", 'description', "\n\n",
 		
-		"\t", '-c', "\t", 'use curl or lwp instead of wget', "\n",
-		"\t", '-w', "\t", 'use lwp instead of wget or curl', "\n";
+		"\t", '-c', "\t", 'use curl or lwp instead of wget', "\n";
 	
 	exit(0);
 }
