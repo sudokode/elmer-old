@@ -29,26 +29,27 @@ get_options '	S-services
 		h-help
 		C-curl', 'usage: elmer [OPTIONS] [FILES]';
 
-my $tmp = "";
 our %env_vars = (
-	paste_default => chomp($tmp = `echo \$PASTEDEFAULT`),
-	paste1 => chomp($tmp = `echo \$PASTE1`),
-	paste2 => chomp($tmp = `echo \$PASTE2`),
-	paste3 => chomp($tmp = `echo \$PASTE3`),
-	paste_lang => chomp($tmp = `echo \$PASTELANG`),
-	paste_expire => chomp($tmp = `echo \$PASTEEXPIRE`),
-	paste_name => chomp($tmp = `echo \$PASTENAME`),
-	paste_user => chomp($tmp = `echo \$PASTEUSER`)
+	paste_default => `echo \$PASTEDEFAULT`,
+	paste1 => `echo \$PASTE1`,
+	paste2 => `echo \$PASTE2`,
+	paste3 => `echo \$PASTE3`,
+	paste_lang => `echo \$PASTELANG`,
+	paste_expire => `echo \$PASTEEXPIRE`,
+	paste_name => `echo \$PASTENAME`,
+	paste_user => `echo \$PASTEUSER`
 );
 
-if ($env_vars{'paste_default'} == 1) { $env_vars{'paste_default'} = 'codepad'; }
-if ($env_vars{'paste1'} == 1) { $env_vars{'paste1'} = 'lodgeit'; }
-if ($env_vars{'paste2'} == 1) { $env_vars{'paste2'} = 'pbcom'; }
-if ($env_vars{'paste3'} == 1) { $env_vars{'paste3'} = 'pborg'; }
-if ($env_vars{'paste_lang'} == 1) { $env_vars{'paste_lang'} = 'plain'; }
-if ($env_vars{'paste_expire'} == 1) { $env_vars{'paste_expire'} = '1d'; }
-if ($env_vars{'paste_name'} == 1) { $env_vars{'paste_name'} = 'anon'; }
-if ($env_vars{'paste_user'} == 1) { $env_vars{'paste_user'} = ''; }
+foreach (keys(%env_vars)) { chomp($env_vars{$_}); }
+
+if (not $env_vars{'paste_default'}) { $env_vars{'paste_default'} = 'codepad'; }
+if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'lodgeit'; }
+if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'pbcom'; }
+if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'pborg'; }
+if (not $env_vars{'paste_lang'}) { $env_vars{'paste_lang'} = 'plain'; }
+if (not $env_vars{'paste_expire'}) { $env_vars{'paste_expire'} = '1d'; }
+if (not $env_vars{'paste_name'}) { $env_vars{'paste_name'} = 'anon'; }
+if (not $env_vars{'paste_user'}) { $env_vars{'paste_user'} = ''; }
 
 if ($O{'help'}) {
 	print	"elmer -- the ultimate paste\n\n",
@@ -60,9 +61,9 @@ if ($O{'help'}) {
 		"\t", '-o <service>', "\t", 'print options for service', "\n\n",
 		
 		"Paste options: \n",
-		"\t", '-s <service>', "\t", 'service (default: ', $env_vars{'paste_default'}, ')', "\n",
-		"\t", '-l <lang>', "\t", 'language (default: ', $env_vars{'paste_lang'}, ')', "\n",
-		"\t", '-e <expire>', "\t", 'expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
+		"\t", '-s <service>', "\t", 'paste service (default: ', $env_vars{'paste_default'}, ')', "\n",
+		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $env_vars{'paste_lang'}, ')', "\n",
+		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
 		"\t", '-p', "\t\t", 'private paste', "\n",
 		"\t", '-r', "\t\t", 'run paste', "\n",
 		"\t", '-t <title>', "\t", 'paste title', "\n",
@@ -76,7 +77,7 @@ if ($O{'help'}) {
 		
 		"Other options: \n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
-		"\t", '-d', "\t\t", 'use stdin (make the last arg)', "\n",
+		"\t", '-d', "\t\t", 'use stdin (make this the last arg)', "\n",
 		"\t", '-x', "\t\t", 'paste the url to the X buffer with xclip', "\n",
 		"\t", '-X', "\t\t", 'use input from the X buffer with xclip', "\n",
 		"\t", '-C', "\t\t", 'use curl instead of wget', "\n",
