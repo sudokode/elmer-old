@@ -406,7 +406,7 @@ if (not $O{'stdin'}) {
 	} else {
 		foreach (@ARGV) {
 			if (-e $_) {
-				chomp(my $file = `ls $_`;
+				chomp(my $file = `ls $_`);
 				$input .= "\nFile: $file\n";
 				$input .= `cat $_` || error("$_ cannot be read.");
 			} else { error("$_ cannot be read."); }
