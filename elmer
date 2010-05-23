@@ -84,7 +84,7 @@ if ($O{'help'}) {
 		
 		'The following environment variables can be used to alter the defaults:', "\n",
 		"\t", '-s = $PASTE_DEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
-		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTE_NAME, -u = $PASTE_USER', "\n";
+		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTENAME, -u = $PASTEUSER', "\n";
 	
 	exit(0);
 }
