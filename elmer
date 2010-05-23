@@ -53,7 +53,7 @@ if ($env_vars{'paste_user'} == 1) { $env_vars{'paste_user'} = ''; }
 if ($O{'help'}) {
 	print	"elmer -- the ultimate paste\n\n",
 		
-		"Print list options: \n",
+		"List options: \n",
 		"\t", '-S', "\t\t", 'print services', "\n",
 		"\t", '-L <service>', "\t", 'print languages for service', "\n",
 		"\t", '-E <service>', "\t", 'print expirations for service', "\n",
@@ -63,16 +63,16 @@ if ($O{'help'}) {
 		"\t", '-s <service>', "\t", 'service (default: ', $env_vars{'paste_default'}, ')', "\n",
 		"\t", '-l <lang>', "\t", 'language (default: ', $env_vars{'paste_lang'}, ')', "\n",
 		"\t", '-e <expire>', "\t", 'expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
-		"\t", '-p', "\t\t", 'private', "\n",
-		"\t", '-r', "\t\t", 'run', "\n",
-		"\t", '-t <title>', "\t", 'title', "\n",
-		"\t", '-n <name>', "\t", 'name (default: ', $env_vars{'paste_name'}, ')', "\n",
-		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $env_vars{'paste_user'}, ')', "\n",
+		"\t", '-p', "\t\t", 'private paste', "\n",
+		"\t", '-r', "\t\t", 'run paste', "\n",
+		"\t", '-t <title>', "\t", 'paste title', "\n",
+		"\t", '-n <name>', "\t", 'paster name (default: ', $env_vars{'paste_name'}, ')', "\n",
+		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $env_vars{'paste_user'}, ')', "\n\n",
 		
 		"Quick service options: \n",
 		"\t", '-1', "\t\t", $env_vars{'paste1'}, "\n",
 		"\t", '-2', "\t\t", $env_vars{'paste2'}, "\n",
-		"\t", '-3', "\t\t", $env_vars{'paste3'}, "\n",
+		"\t", '-3', "\t\t", $env_vars{'paste3'}, "\n\n",
 		
 		"Other options: \n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
