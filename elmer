@@ -83,7 +83,7 @@ if ($O{'help'}) {
 		"\t", '-h', "\t\t", 'print this help menu', "\n\n",
 		
 		'The following environment variables can be used to alter the defaults:', "\n",
-		"\t", '-s = $PASTE_DEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
+		"\t", '-s = $PASTEDEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
 		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTENAME, -u = $PASTEUSER', "\n";
 	
 	exit(0);
