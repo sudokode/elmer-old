@@ -1,15 +1,45 @@
 STILL IN DEVELOPMENT!
 
+Don't forget to read the license before copying, distributing, or modifying.
+
+There have been quite a few changes since I finished lodgeit. Wget and curl both work now.
+Elmer will try wget first, then try curl. If you for some reason just want it to go
+right to curl, just use -C. xclip support was added. Elmer can now read from the
+clipboard and paste urls to the clipboard with -X and -x, respectively. And another
+major change is the option to use environment variables. If any of them are not set,
+elmer has built-in defaults or you will be required to enter them on the command line.
+If you choose to use them, it can greatly speed of the process of pasting. The variables
+are as follows:
+
+	$PASTEDEFAULT (the default paste service)
+	$PASTE1 (favorite service 1, option -1)
+	$PASTE2 (favorite service 2, option -2)
+	$PASTE3 (favorite service 3, option -3)
+	$PASTELANG (the default paste language) <- NOT RECOMMENDED IN MOST CASES
+	$PASTEEXPIRE (the default paste expiration)
+	$PASTENAME (the default name of the paster)
+	$PASTEUSER (the default user, used for personal bins, i.e. johndoe.pastebin.com)
+
+You can view the current defaults (whether set by env-var or built in) with -h. Elmer
+can also read from stdin with -d now. It can also paste multiple files (by default) and
+optionally concatenate them, prefixed with their name, with -c.
+
+
 Services finished:
 
-	codepad.org	   (codepad)
-	pastebin.com	   (pbcom)
-	pastebin.org	   (pborg)
-	paste.pocoo.org	   (lodgeit)
+	codepad.org        (codepad)
+	pastebin.com       (pbcom)
+	pastebin.org       (pborg)
+	paste.pocoo.org    (lodgeit)
+
+Services TODO:
+	sprunge.us       (sprunge)
+	omploader.org    (omp)
+	sudokode.net     (sudo)
+
 
 Dependencies include:
 
-	Getopt::Easy (for the command line options) [REQUIRED]
-		http://search.cpan.org/~jonbj/Getopt-Easy-0.1/lib/Getopt/Easy.pm
+	Getopt::Easy (for the command line options) [REQUIRED] (http://search.cpan.org/~jonbj/Getopt-Easy-0.1/lib/Getopt/Easy.pm)
 	wget (for pasting with wget) [OPTION 1/2]
 	curl (for pasting with curl) [OPTION 2/2]
