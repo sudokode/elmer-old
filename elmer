@@ -4,12 +4,14 @@ use warnings;
 use Getopt::Easy;
 use URI::Escape;
 
-get_options '	h-help
-
-		S-services
+get_options '	S-services
 		L-languages=
 		E-expirations=
 		o-options=
+		
+		1-service1
+		2-service2
+		3-service3
 		
 		s-service=
 		l-language=
@@ -18,29 +20,71 @@ get_options '	h-help
 		r-run
 		n-name=
 		t-title=
-		d-desc=
+		u-user=
 		
-		c-curl', 'usage: elmer [OPTIONS] [FILES]';
+		c-concat
+		d-stdin
+		x-xclip_out
+		X-xclip_in
+		h-help
+		C-curl', 'usage: elmer [OPTIONS] [FILES]';
+
+my $tmp = "";
+our %env_vars = (
+	paste_default => chomp($tmp = `echo \$PASTEDEFAULT`),
+	paste1 => chomp($tmp = `echo \$PASTE1`),
+	paste2 => chomp($tmp = `echo \$PASTE2`),
+	paste3 => chomp($tmp = `echo \$PASTE3`),
+	paste_lang => chomp($tmp = `echo \$PASTELANG`),
+	paste_expire => chomp($tmp = `echo \$PASTEEXPIRE`),
+	paste_name => chomp($tmp = `echo \$PASTENAME`),
+	paste_user => chomp($tmp = `echo \$PASTEUSER`)
+);
+
+if ($env_vars{'paste_default'} == 1) { $env_vars{'paste_default'} = 'codepad'; }
+if ($env_vars{'paste1'} == 1) { $env_vars{'paste1'} = 'lodgeit'; }
+if ($env_vars{'paste2'} == 1) { $env_vars{'paste2'} = 'pbcom'; }
+if ($env_vars{'paste3'} == 1) { $env_vars{'paste3'} = 'pborg'; }
+if ($env_vars{'paste_lang'} == 1) { $env_vars{'paste_lang'} = 'plain'; }
+if ($env_vars{'paste_expire'} == 1) { $env_vars{'paste_expire'} = '1d'; }
+if ($env_vars{'paste_name'} == 1) { $env_vars{'paste_name'} = 'anon'; }
+if ($env_vars{'paste_user'} == 1) { $env_vars{'paste_user'} = ''; }
 
 if ($O{'help'}) {
-	print	"elmer -- the ultimate paste\n",
-		"\t", '-h', "\t", 'print this help menu', "\n\n",
+	print	"elmer -- the ultimate paste\n\n",
 		
-		"\t", '-S', "\t", 'print services', "\n",
-		"\t", '-L', "\t", 'print languages for service', "\n",
-		"\t", '-E', "\t", 'print expirations for service', "\n",
-		"\t", '-o', "\t", 'print options for service', "\n\n",
+		"Print list options: \n",
+		"\t", '-S', "\t\t", 'print services', "\n",
+		"\t", '-L <service>', "\t", 'print languages for service', "\n",
+		"\t", '-E <service>', "\t", 'print expirations for service', "\n",
+		"\t", '-o <service>', "\t", 'print options for service', "\n\n",
 		
-		"\t", '-s', "\t", 'service (default: codepad)', "\n",
-		"\t", '-l', "\t", 'language (default: plain)', "\n",
-		"\t", '-e', "\t", 'expiration (default: 1 day)', "\n",
-		"\t", '-p', "\t", 'private', "\n",
-		"\t", '-r', "\t", 'run', "\n",
-		"\t", '-n', "\t", 'name', "\n",
-		"\t", '-t', "\t", 'title', "\n",
-		"\t", '-d', "\t", 'description', "\n\n",
+		"Paste options: \n",
+		"\t", '-s <service>', "\t", 'service (default: ', $env_vars{'paste_default'}, ')', "\n",
+		"\t", '-l <lang>', "\t", 'language (default: ', $env_vars{'paste_lang'}, ')', "\n",
+		"\t", '-e <expire>', "\t", 'expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
+		"\t", '-p', "\t\t", 'private', "\n",
+		"\t", '-r', "\t\t", 'run', "\n",
+		"\t", '-t <title>', "\t", 'title', "\n",
+		"\t", '-n <name>', "\t", 'name (default: ', $env_vars{'paste_name'}, ')', "\n",
+		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $env_vars{'paste_user'}, ')', "\n",
 		
-		"\t", '-c', "\t", 'use curl or lwp instead of wget', "\n";
+		"Quick service options: \n",
+		"\t", '-1', "\t\t", $env_vars{'paste1'}, "\n",
+		"\t", '-2', "\t\t", $env_vars{'paste2'}, "\n",
+		"\t", '-3', "\t\t", $env_vars{'paste3'}, "\n",
+		
+		"Other options: \n",
+		"\t", '-c', "\t\t", 'concatenate files', "\n",
+		"\t", '-d', "\t\t", 'use stdin (make the last arg)', "\n",
+		"\t", '-x', "\t\t", 'paste the url to the X buffer with xclip', "\n",
+		"\t", '-X', "\t\t", 'use input from the X buffer with xclip', "\n",
+		"\t", '-C', "\t\t", 'use curl instead of wget', "\n",
+		"\t", '-h', "\t\t", 'print this help menu', "\n\n",
+		
+		'The following environment variables can be used to alter the defaults:', "\n",
+		"\t", '-s = $PASTE_DEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
+		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTE_NAME, -u = $PASTE_USER', "\n";
 	
 	exit(0);
 }
@@ -50,26 +94,24 @@ if ($O{'services'}) {
 		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n",
 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
-		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n";
-# 		"\t", 'dpcom', "\t\t", 'http://dpaste.com', "\t\t", 'Text', "\n",
-# 		"\t", 'dporg', "\t\t", 'http://dpaste.org', "\t\t", 'Text', "\n",
-# 		"\t", 'copy', "\t\t", 'http://copypastecode.com', "\t", 'Text', "\n",
-# 		"\t", 'util', "\t\t", 'http://utilitybase.com/paste', "\t", 'Text', "\n",
-# 		"\t", 'paste2', "\t\t", 'http://paste2.org/', "\t\t", 'Text', "\n",
-# 		"\t", 'pastie', "\t\t", 'http://pastie.org', "\t\t", 'Text', "\n",
-# 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
-# 		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Any', "\n",
-# 		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n";
+		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
+		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
+		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Any', "\n",
+		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n"
+		;
 		
 	exit(0);
 }
 
 if ($O{'options'}) {
 	my %options = (
-		codepad => 'languages private run',
-		pbcom => 'languages expirations private title',
-		pborg => 'languages expirations name',
-		lodgeit => 'languages private'
+		codepad => 'text languages private run',
+		pbcom => 'text languages expirations private title user',
+		pborg => 'text languages expirations name',
+		lodgeit => 'text languages private',
+		sprunge => 'text languages',
+		omp => 'file',
+		sudo => 'image'
 	);
 	
 	print "Available options for ", $O{'options'}, ":\n\t";
@@ -83,18 +125,18 @@ our %errors = (
 	service => 1,		# Service unavailable
 	language => 2,		# Language unavailable for service
 	expire => 3,		# Expire unavailable for service
-	noinput => 4,		# No input to paste (file or stdin)
+	input => 4,		# No input to paste (file or stdin)
 	file => 5,		# File cannot be read
 	program => 6,		# Cannot find wget or curl
 	paste => 7		# Paste failed
 );
 
-sub error($$) {
+sub error {
 	my $msg = shift;
 	my $code = shift;
 	
 	print "$msg\n";
-	exit($code);
+	if ($code) { exit($code); }
 }
 
 sub print_langs($$) {
@@ -139,9 +181,21 @@ sub paste($$) {
 	}
 }
 
+sub print_url($) {
+	my $url = shift;
+	
+	if ($url =~ m/spam/) {
+		if ($O{'xclip_out'}) { system("echo 'Spam test: $url' | xclip -selection clipboard -i"); }
+		print "Spam test: $url\n";
+	} else {
+		if ($O{'xclip_out'}) { system("echo $url | xclip -selection clipboard -i"); }
+		print "Pasted: $url\n";
+	}
+}
+
 sub codepad($) {
 	my $text = shift;
-	my $lang = $O{'language'} || 'plain';
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	my $run = $O{'run'};	# True or False
 	my $private = $O{'private'};	#True or False
 	
@@ -164,20 +218,17 @@ sub codepad($) {
 	my $data = "run=$run&lang=$lang&private=$private&code=$text&submit=Submit";
 	my $response = paste('http://codepad.org/', $data);
 	
-	if ($response =~ m/(http:\/\/codepad.org\/\w+)/) {
-		print "Pasted: $1\n";
-		exit(0);
-	}
-	
-	error('Paste failed!', $errors{'paste'});
+	if ($response =~ m/(http:\/\/codepad.org\/\w+)/) { print_url($1); }
+	else { error('Paste failed!', $errors{'paste'}); }
 }
 
 sub pbcom($) {
 	my $text = shift;
-	my $lang = $O{'language'} || 'plain';
-	my $expiration = $O{'expiration'} || '1d';
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
+	my $expiration = $O{'expiration'} || $env_vars{'paste_expire'};
 	my $private = $O{'private'};	# 0 or 1
 	my $title = $O{'title'};
+	my $user = $O{'user'} || $env_vars{'paste_user'};
 	
 	my %langs = ('plain', 1, 'action', 2, 'action3', 74, 'ada', 3, 'apache', 4, 'apple', 5, 'apt', 75, 'asm', 6, 'asp', 7, 'bash', 8, 'brainfuck', 79, 'c', 9, 'c#', 14, 'c++', 13, 'cmake', 83, 'cobol', 84, 'coldfusion', 15, 'css', 16, 'd', 17, 'delphi', 18, 'diff', 19, 'dos', 20, 'eiffel', 21, 'email', 88, 'erlang', 57, 'fortran', 22, 'freebasic', 23, 'gettext', 90, 'haskell', 60, 'html', 25, 'ini', 26, 'intercal', 95, 'java', 27, 'java5', 97, 'javascript', 28, 'latex', 62, 'lisp', 29, 'lua', 30, 'make', 106, 'matlab', 31, 'mirc', 66, 'modula3', 107, 'mxml', 108, 'mysql', 33, 'ojb-c', 35, 'ocaml', 36, 'pascal', 39, 'perl', 40, 'php', 41, 'powersh', 117, 'prolog', 119, 'python', 42, 'qbasic', 43, 'rails', 67, 'ruby', 45, 'scala', 125, 'scheme', 46, 'scilab', 126, 'smalltalk', 69, 'sql', 48, 'tcl', 49, 'unreal', 71, 'vb.net', 51, 'vim', 134, 'vbasic', 50, 'whois', 137, 'xml', 53, 'xorg', 139);
 	
@@ -197,21 +248,26 @@ sub pbcom($) {
 	$text = uri_escape($text);
 	
 	my $data = "paste_format=$lang&paste_expire_date=$expiration&paste_private=$private&paste_name=$title&paste_code=$text&submit=submit";
-	my $response = paste('http://pastebin.com/post.php', $data);
 	
-	if ($response =~ m/http:\/\/pastebin.com\/(\w+)/ || $response =~ m/location: \/(\w+)/) {
-		print "Pasted: http://pastebin.com/$1\n";
-		exit(0);
-	}
+	my $url = 'http://';
+	if ($user) { $url .= $user . '.'; }
+	$url .= 'pastebin.com/post.php';
+	my $response = paste($url, $data);
 	
-	error('Paste failed!', $errors{'paste'});
+	if ($response =~ m/http:\/\/pastebin.com\/spam.php\?i=(\w+)/) {
+		print_url("http://pastebin.com/spam.php?i=$1");
+		
+	} elsif ($response =~ m/http:\/\/pastebin.com\/(\w+)/ || $response =~ m/location: \/(\w+)/) {
+		print_url("http://pastebin.com/$1");
+		
+	} else { error('Paste failed!', $errors{'paste'}); }
 }
 
 sub pborg($) {
 	my $text = shift;
-	my $lang = $O{'language'} || 'plain';
-	my $expiration = $O{'expiration'} || '1d';
-	my $name = $O{'name'};
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
+	my $expiration = $O{'expiration'} || $env_vars{'paste_expire'};
+	my $name = $O{'name'} || $env_vars{'paste_name'};
 	
 	my %langs = ('plain', 'text', 'action', 'actionscript', 'ada', 'ada', 'apache', 'apache', 'apple', 'applescript', 'asm', 'asm', 'asp', 'asp', 'bash', 'bash', 'c', 'c', 'c++', 'cpp', 'c#', 'csharp', 'coldfusion', 'cfm', 'css', 'css', 'd', 'd', 'delphi', 'delphi', 'diff', 'diff', 'dos', 'dos', 'eiffel', 'eiffel', 'fortran', 'fortran', 'freebasic', 'freebasic', 'html', 'html4strict', 'ini', 'ini', 'java', 'java', 'javascript', 'javascript', 'lisp', 'lisp', 'lua', 'lua', 'matlab', 'matlab', 'mpasm', 'mpasm', 'mysql', 'mysql', 'nullsoft', 'nsis', 'obj-c', 'objc', 'ocaml', 'ocaml', 'openoffice', 'oobas', 'oracle8', 'oracle8', 'pascal', 'pascal', 'perl', 'perl', 'php', 'php', 'python', 'python', 'qbasic', 'qbasic', 'robots', 'robots', 'ruby', 'ruby', 'scheme', 'scheme', 'smarty', 'smarty', 'sql', 'sql', 'tcl', 'tcl', 'vbasic', 'vb', 'vb.net', 'vbnet', 'xml', 'xml');
 	
@@ -233,17 +289,13 @@ sub pborg($) {
 	my $data = "format=$lang&code2=$text&poster=$name&expiry=$expiration&paste=Send";
 	my $response = paste('http://pastebin.org/pastebin.php', $data);
 	
-	if ($response =~ m/(http:\/\/pastebin.org\/\d+)/) {
-		print "Pasted: $1\n";
-		exit(0);
-	}
-	
-	error('Paste failed!', $errors{'paste'});
+	if ($response =~ m/(http:\/\/pastebin.org\/\d+)/) { print_url($1); }
+	else { error('Paste failed!', $errors{'paste'}); }
 }
 
 sub lodgeit($) {
 	my $text = shift;
-	my $lang = $O{'language'} || 'plain';
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	my $private = $O{'private'};	# on or NULL
 	
 	my %langs = ('plain', 'text', 'apache', 'apache', 'bash', 'bash', 'batch', 'bat', 'boo', 'boo', 'brainfuck', 'brainfuck', 'c', 'c', 'c#', 'csharp', 'c++', 'cpp', 'clojure', 'clojure', 'creole', 'creole', 'css', 'css', 'csv', 'csv', 'd', 'd', 'control', 'control', 'django', 'html+django', 'dylan', 'dylan', 'erlang', 'erlang', 'rhtml', 'rhtml', 'gas', 'gas', 'gcc', 'gcc-messages', 'genshi', 'genshi', 'gettext', 'gettext', 'opengl', 'glsl', 'go', 'go', 'haskell', 'haskell', 'html', 'html', 'ini', 'ini', 'irb', 'irb', 'io', 'io', 'irc', 'irc', 'java', 'java', 'javac', 'javac-messages', 'javascript', 'js', 'jsp', 'jsp', 'lighty', 'lighttpd', 'lithaskell', 'literate-haskell', 'llvm', 'llvm', 'lua', 'lua', 'mako', 'html+mako', 'matlab', 'matlab', 'matlab-sess', 'matlabsession', 'minid', 'minid', 'multi', 'multi', 'myghty', 'html+myghty', 'mysql', 'mysql', 'nasm', 'nasm', 'nginx', 'nginx', 'delphi', 'objectpascal', 'ocaml', 'ocaml', 'perl', 'perl', 'php', 'html+php', 'povray', 'povray', 'python', 'python', 'pycon', 'pycon', 'pytb', 'pytb', 'rst', 'rst', 'ruby', 'ruby', 'scala', 'scala', 'scheme', 'scheme', 'smalltalk', 'smalltalk', 'smarty', 'smarty', 'sources', 'sourceslist', 'sql', 'sql', 'squidconf', 'squidconf', 'tex', 'tex', 'diff', 'diff', 'vim', 'vim', 'xml', 'xml', 'xslt', 'xslt', 'yaml', 'yaml');
@@ -262,11 +314,49 @@ sub lodgeit($) {
 	my $response = paste('http://paste.pocoo.org/', $data);
 	
 	if ($response =~ m/\/raw\/(\d+)/ ||$response =~ m/Location:.*\/(\d+)/) {
-		print "Pasted: http://paste.pocoo.org/show/$1/\n";
-		exit(0);
-	}
+		print_url("http://paste.pocoo.org/show/$1/");
+		
+	} else { error('Paste failed!', $errors{'paste'}); }
+}
+
+sub sprunge($) {
+	my $text = shift;
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	
-	error('Paste failed!', $errors{'paste'});
+	print "sprunge coming soon...\n";
+	exit(0);
+}
+
+sub omp($) {
+	my $text = shift;
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
+	
+	print "omp coming soon...\n";
+	exit(0);
+}
+
+sub sudo($) {
+	my $text = shift;
+	my $lang = $O{'language'} || $env_vars{'paste_lang'};
+	
+	print "sudo coming soon...\n";
+	exit(0);
+}
+
+sub find_service($) {
+	my $input = shift;
+	
+	use Switch;
+	switch (lc $O{'service'}) {
+		case 'codepad'		{ codepad($input); }
+		case 'pbcom'		{ pbcom($input); }
+		case 'pborg'		{ pborg($input); }
+		case 'lodgeit'		{ lodgeit($input); }
+		case 'sprunge'		{ sprunge($input); }
+		case 'omp'		{ omp($input); }
+		case 'sudo'		{ sudo($input); }
+		default			{ error('Service ' . $O{'service'} . ' not available.', $errors{'service'}); }
+	}
 }
 
 if ($O{'languages'}) {
@@ -276,14 +366,8 @@ if ($O{'languages'}) {
 		case 'pbcom'		{ pbcom('langs'); }
 		case 'pborg'		{ pborg('langs'); }
 		case 'lodgeit'		{ lodgeit('langs'); }
-# 		case 'dpcom'		{ dpcom('langs'); }
-# 		case 'dporg'		{ dporg('langs'); }
-# 		case 'copy'		{ copy('langs'); }
-# 		case 'util'		{ util('langs'); }
-# 		case 'paste2'		{ paste2('langs'); }
-# 		case 'pastie'		{ pastie('langs'); }
-		case ''			{ codepad('langs'); }
-		default		{ error('No languages for ' . $O{'languages'} . '.', $errors{'language'}); }
+		case 'sprunge'		{ sprunge('langs'); }
+		default			{ error('No languages for ' . $O{'languages'} . '.', $errors{'language'}); }
 	}
 	
 	exit(0);
@@ -294,28 +378,45 @@ if ($O{'expirations'}) {
 	switch (lc $O{'expirations'}) {
 		case 'pbcom'		{ pbcom('exp'); }
 		case 'pborg'		{ pborg('exp'); }
-# 		case 'dpcom'		{ dpcom('exp'); }
-# 		case 'dporg'		{ dporg('exp'); }
-# 		case 'copy'		{ copy('exp'); }
-# 		case 'util'		{ util('exp'); }
-# 		case 'paste2'		{ paste2('exp'); }
-# 		case 'pastie'		{ pastie('exp'); }
-		case ''			{ codepad('exp'); }
-		default		{ error('No expirations for ' . $O{'expirations'} . '.', $errors{'expire'}); }
+		default			{ error('No expirations for ' . $O{'expirations'} . '.', $errors{'expire'}); }
 	}
 	
 	exit(0);
 }
 
-my $input = shift or error('No input found.', $errors{'noinput'});
-if (-e $input) { $input = `cat $input` || error('File cannot be read.', $errors{'file'}); }
+if ($O{'service1'} && $env_vars{'paste1'}) { $O{'service'} = $env_vars{'paste1'}; }
+elsif ($O{'service2'} && $env_vars{'paste2'}) { $O{'service'} = $env_vars{'paste2'}; }
+elsif ($O{'service3'} && $env_vars{'paste3'}) { $O{'service'} = $env_vars{'paste3'}; }
+elsif (not $O{'service'} && $env_vars{'paste_default'}) { $O{'service'} = $env_vars{'paste_default'}; }
 
-use Switch;
-switch (lc $O{'service'}) {
-	case 'codepad'		{ codepad($input); }
-	case 'pbcom'		{ pbcom($input); }
-	case 'pborg'		{ pborg($input); }
-	case 'lodgeit'		{ lodgeit($input); }
-	case ''			{ codepad($input); }
-	default		{ error('Service ' . $O{'service'} . ' not available.', $errors{'service'}); }
+my $input = "";
+if (not $O{'stdin'}) {
+	if (not $O{'concat'}) {
+		if (not $O{'xclip_in'}) {
+			foreach (@ARGV) {
+				if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
+				else { error("$_ cannot be read."); }
+				
+				find_service($input);
+			}
+		} else {
+			$input = `xclip -selection clipboard -o`;
+			find_service($input);
+		}
+	} else {
+		foreach (@ARGV) {
+			if (-e $_) {
+				chomp(my $file = `ls $_`;
+				$input .= "\nFile: $file\n";
+				$input .= `cat $_` || error("$_ cannot be read.");
+			} else { error("$_ cannot be read."); }
+		}
+		find_service($input);
+	}
+} else {
+	while (<>) { $input .= $_; }
+	find_service($input);
 }
+
+# Please adhere to the license attached.
+# Copyright (C) 2010 by Tim Paris <sudokode@gmail.com>
