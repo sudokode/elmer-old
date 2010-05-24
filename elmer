@@ -54,13 +54,14 @@ if (not $env_vars{'paste_user'}) { $env_vars{'paste_user'} = ''; }
 if ($O{'help'}) {
 	print	"elmer -- the ultimate paste\n\n",
 		
-		"List options: \n",
+		"Help options:\n",
+		"\t", '-h', "\t\t", 'print this help menu', "\n",
 		"\t", '-S', "\t\t", 'print services', "\n",
 		"\t", '-L <service>', "\t", 'print languages for service', "\n",
 		"\t", '-E <service>', "\t", 'print expirations for service', "\n",
 		"\t", '-o <service>', "\t", 'print options for service', "\n\n",
 		
-		"Paste options: \n",
+		"Paste options:\n",
 		"\t", '-s <service>', "\t", 'paste service (default: ', $env_vars{'paste_default'}, ')', "\n",
 		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $env_vars{'paste_lang'}, ')', "\n",
 		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
@@ -70,18 +71,19 @@ if ($O{'help'}) {
 		"\t", '-n <name>', "\t", 'paster name (default: ', $env_vars{'paste_name'}, ')', "\n",
 		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $env_vars{'paste_user'}, ')', "\n\n",
 		
-		"Quick service options: \n",
+		"Quick service options:\n",
 		"\t", '-1', "\t\t", $env_vars{'paste1'}, "\n",
 		"\t", '-2', "\t\t", $env_vars{'paste2'}, "\n",
 		"\t", '-3', "\t\t", $env_vars{'paste3'}, "\n\n",
 		
-		"Other options: \n",
+		"Input options:\n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
 		"\t", '-d', "\t\t", 'use stdin (make this the last arg)', "\n",
+		"\t", '-X', "\t\t", 'use input from the X buffer with xclip', "\n\n",
+		
+		"Other options: \n",
 		"\t", '-x', "\t\t", 'paste the url to the X buffer with xclip', "\n",
-		"\t", '-X', "\t\t", 'use input from the X buffer with xclip', "\n",
-		"\t", '-C', "\t\t", 'use curl instead of wget', "\n",
-		"\t", '-h', "\t\t", 'print this help menu', "\n\n",
+		"\t", '-C', "\t\t", 'use curl instead of wget', "\n\n",
 		
 		'The following environment variables can be used to alter the defaults:', "\n",
 		"\t", '-s = $PASTEDEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
@@ -128,7 +130,7 @@ our %errors = (
 	expire => 3,		# Expire unavailable for service
 	input => 4,		# No input to paste (file or stdin)
 	file => 5,		# File cannot be read
-	program => 6,		# Cannot find wget or curl
+	program => 6,		# Cannot find wget, curl, or xclip
 	paste => 7		# Paste failed
 );
 
@@ -138,6 +140,13 @@ sub error {
 	
 	print "$msg\n";
 	if ($code) { exit($code); }
+}
+
+sub check_prog($) {
+	my $prog = shift;
+	
+	if (system("which $prog &>/dev/null") == 0) { return 1; }
+	else { return 0; }
 }
 
 sub print_langs($$) {
@@ -173,9 +182,9 @@ sub paste($$) {
 	my $data = shift;
 	my $curl = $O{'curl'};
 	
-	if (not $curl && system('which wget &>/dev/null') == 0) {
+	if (not $curl && check_prog('wget')) {
 		return `wget -qO - $host --post-data="$data"`;
-	} elsif (system('which curl &>/dev/null') == 0) {
+	} elsif (check_prog('curl')) {
 		return `curl -is -H "Expect:" $host -d "$data"`;
 	} else {
 		error('Could not find wget or curl.', $errors{'program'});
@@ -186,21 +195,25 @@ sub paste_file($$) {
 	my $host = shift;
 	my $data = shift;
 	
-	if (system('which curl &>/dev/null') == 0) {
+	if (check_prog('curl')) {
 		return `curl -is $host -F $data`;
 	} else {
-		error("curl is required for omp and sudo because wget does not support multipart/form-data, send all complaints their way :(", $errors{'program'});
+		error('curl is required for omp and sudo because wget does not support multipart/form-data, send all complaints their way :(', $errors{'program'});
 	}
 }
 
 sub print_url($) {
 	my $url = shift;
 	
+	if ($O{'xclip_out'} && not check_prog('wget')) {
+		error('This options requires xclip.', $errors{'program'});
+	}
+	
 	if ($url =~ m/spam/) {
-		if ($O{'xclip_out'}) { system("echo 'Spam test: $url' | xclip -selection clipboard -i"); }
+		if ($O{'xclip_out'}) { system("echo 'Spam test: $url' | xclip -i"); }
 		print "Spam test: $url\n";
 	} else {
-		if ($O{'xclip_out'}) { system("echo $url | xclip -selection clipboard -i"); }
+		if ($O{'xclip_out'}) { system("echo $url | xclip -i"); }
 		print "Pasted: $url\n";
 	}
 }
@@ -443,10 +456,18 @@ if (not $O{'stdin'}) {
 				if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
 				else { error("$_ cannot be read."); }
 				
+				if (not $input) { error('No input found.', $errors{'input'}); }
 				find_service($input);
 			}
 		} else {
-			$input = `xclip -selection clipboard -o`;
+			if (check_prog('xclip')) {
+				error('This option requires xclip', $errors{'program'});
+			}
+			
+			$input = `xclip -o`;
+			
+			if (not $input) { error('No input found.', $errors{'input'}); }
+			
 			find_service($input);
 		}
 		
@@ -462,6 +483,8 @@ if (not $O{'stdin'}) {
 				$input .= `cat $_` || error("$_ cannot be read.");
 			} else { error("$_ cannot be read."); }
 		}
+		
+		if (not $input) { error('No input found.', $errors{'input'}); }
 		find_service($input);
 	}
 	
