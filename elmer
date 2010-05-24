@@ -346,7 +346,6 @@ sub sprunge($) {
 
 sub omp($) {
 	my $text = shift;
-	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	
 	print "omp coming soon...\n";
 	exit(0);
@@ -354,7 +353,6 @@ sub omp($) {
 
 sub sudo($) {
 	my $text = shift;
-	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	
 	print "sudo coming soon...\n";
 	exit(0);
