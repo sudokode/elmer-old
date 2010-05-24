@@ -41,7 +41,7 @@ Services finished:
 
 
 Dependencies include:
-
+	perl (for the script...)
 	Getopt::Easy (for the command line options) [REQUIRED] (http://search.cpan.org/~jonbj/Getopt-Easy-0.1/lib/Getopt/Easy.pm)
 	xclip (for input from and output to xclip) [OPTIONAL]
 	wget (for pasting with wget) [OPTION 1/2]
