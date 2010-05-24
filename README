@@ -1,6 +1,8 @@
-STILL IN DEVELOPMENT!
-
 Don't forget to read the license before copying, distributing, or modifying.
+
+All of the planned services are finished. If you notice any problems, just let me know.
+I'll be using elmer myself, so any obvious bugs will prolly be fixed immediately, so
+remember to git pull before you report a bug.
 
 There have been quite a few changes since I finished lodgeit. Wget and curl both work now.
 Elmer will try wget first, then try curl. If you for some reason just want it to go
@@ -32,11 +34,8 @@ Services finished:
 	pastebin.org       (pborg)
 	paste.pocoo.org    (lodgeit)
 	sprunge.us         (sprunge)
-
-Services TODO:
-
-	omploader.org    (omp)
-	sudokode.net     (sudo)
+	omploader.org      (omp)
+	sudokode.net       (sudo)
 
 
 Dependencies include:
