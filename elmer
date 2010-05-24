@@ -45,7 +45,7 @@ foreach (keys(%env_vars)) { chomp($env_vars{$_}); }
 if (not $env_vars{'paste_default'}) { $env_vars{'paste_default'} = 'codepad'; }
 if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'sprunge'; }
 if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'lodgeit'; }
-if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'pbcom'; }
+if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'ompload'; }
 if (not $env_vars{'paste_lang'}) { $env_vars{'paste_lang'} = 'plain'; }
 if (not $env_vars{'paste_expire'}) { $env_vars{'paste_expire'} = '1d'; }
 if (not $env_vars{'paste_name'}) { $env_vars{'paste_name'} = 'anon'; }
