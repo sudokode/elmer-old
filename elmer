@@ -173,12 +173,23 @@ sub paste($$) {
 	my $data = shift;
 	my $curl = $O{'curl'};
 	
-	if (not $curl && `which wget` eq "/usr/bin/wget\n") {
+	if (not $curl && system('which wget &>/dev/null') == 0) {
 		return `wget -qO - $host --post-data="$data"`;
-	} elsif (`which curl` eq "/usr/bin/curl\n") {
+	} elsif (system('which curl &>/dev/null') == 0) {
 		return `curl -is -H "Expect:" $host -d "$data"`;
 	} else {
 		error('Could not find wget or curl.', $errors{'program'});
+	}
+}
+
+sub paste_file($$) {
+	my $host = shift;
+	my $data = shift;
+	
+	if (system('which curl &>/dev/null') == 0) {
+		return `curl -is $host -F $data`;
+	} else {
+		error("curl is required for omp and sudo because wget does not support multipart/form-data, send all complaints their way :(", $errors{'program'});
 	}
 }
 
@@ -345,17 +356,35 @@ sub sprunge($) {
 }
 
 sub omp($) {
-	my $text = shift;
+	my $data = shift;
+	chomp(my $time = `date +\%T`);
+	my $file = "/tmp/elmer-$time";
 	
-	print "omp coming soon...\n";
-	exit(0);
+	open my $tmp, '>', $file;
+	print $tmp $data;
+	close $tmp;
+	
+	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
+	
+	system("rm $file");
+	
+	if ($response =~ m/(http:\/\/omploader.org\/v\w+)/) { print_url($1); }
 }
 
 sub sudo($) {
-	my $text = shift;
+	my $data = shift;
+	chomp(my $time = `date +\%T`);
+	my $file = "/tmp/elmer-$time";
 	
-	print "sudo coming soon...\n";
-	exit(0);
+	open my $tmp, '>', $file;
+	print $tmp $data;
+	close $tmp;
+	
+	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$file'");
+	
+	system("rm $file");
+	
+	if ($response =~ m/(http:\/\/sudokode.net\/p\/\d+)/) { print_url($1); }
 }
 
 sub find_service($) {
@@ -406,7 +435,9 @@ elsif (not $O{'service'} && $env_vars{'paste_default'}) { $O{'service'} = $env_v
 
 my $input = "";
 if (not $O{'stdin'}) {
+
 	if (not $O{'concat'}) {
+	
 		if (not $O{'xclip_in'}) {
 			foreach (@ARGV) {
 				if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
@@ -418,7 +449,12 @@ if (not $O{'stdin'}) {
 			$input = `xclip -selection clipboard -o`;
 			find_service($input);
 		}
+		
 	} else {
+		if ($O{'service'} eq 'omp' || $O{'service'} eq 'sudo') {
+			error('Cannot concatenate files when using omp or sudo.', $errors{'service'});
+		}
+		
 		foreach (@ARGV) {
 			if (-e $_) {
 				chomp(my $file = `ls $_`);
@@ -428,9 +464,11 @@ if (not $O{'stdin'}) {
 		}
 		find_service($input);
 	}
+	
 } elsif ($O{'stdin'}) {
 	while (<>) { $input .= $_; }
 	find_service($input);
+	
 } else {
 	error('No input found.', $errors{'input'});
 }
