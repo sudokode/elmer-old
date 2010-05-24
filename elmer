@@ -43,9 +43,9 @@ our %env_vars = (
 foreach (keys(%env_vars)) { chomp($env_vars{$_}); }
 
 if (not $env_vars{'paste_default'}) { $env_vars{'paste_default'} = 'codepad'; }
-if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'lodgeit'; }
-if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'pbcom'; }
-if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'pborg'; }
+if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'sprunge'; }
+if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'lodgeit'; }
+if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'pbcom'; }
 if (not $env_vars{'paste_lang'}) { $env_vars{'paste_lang'} = 'plain'; }
 if (not $env_vars{'paste_expire'}) { $env_vars{'paste_expire'} = '1d'; }
 if (not $env_vars{'paste_name'}) { $env_vars{'paste_name'} = 'anon'; }
@@ -324,8 +324,24 @@ sub sprunge($) {
 	my $text = shift;
 	my $lang = $O{'language'} || $env_vars{'paste_lang'};
 	
-	print "sprunge coming soon...\n";
-	exit(0);
+	my %langs = ('plain', 'text', 'clojure', 'clojure', 'io', 'io', 'lua', 'lua', 'minid', 'minid', 'perl', 'perl', 'python', 'python', 'python', 'python3', 'python3', 'ruby', 'ruby', 'tcl', 'tcl', 'gas', 'gas', 'llvm', 'llvm', 'asm', 'nasm', 'ada', 'ada', 'c', 'c', 'c++', 'cpp', 'cython', 'cython', 'd', 'd', 'delphi', 'delphi', 'dylan', 'dylan', 'felix', 'felix', 'fortran', 'fortran', 'opengl', 'glsl', 'go', 'go', 'java', 'java', 'modula2', 'modula2', 'obj-c', 'objc', 'ooc', 'ooc', 'prolog', 'prolog', 'scala', 'scala', 'vala', 'vala', 'boo', 'boo', 'aspx-c#', 'aspx-cs', 'c#', 'csharp', 'aspx-vb', 'aspx-vb', 'vb.net', 'vbnet', 'lisp', 'cl', 'erlang', 'erlang', 'erl', 'erl', 'haskell', 'haskell', 'haskell-lit', 'lhs', 'ocaml', 'ocaml', 'scheme', 'scheme', 'matlab', 'matlab', 'mupad', 'mupad', 'numpy', 'numpy', 'rconsole', 'rconsole', 's', 's', 'abap', 'abap', 'apple', 'applescript', 'asymptote', 'asymptote', 'bash', 'bash', 'batch', 'bat', 'befunge', 'befunge', 'brainfuck', 'brainfuck', 'gherkin', 'gherkin', 'gnuplot', 'gnuplot', 'logtalk', 'logtalk', 'moocode', 'moocode', 'modelica', 'modelica', 'mysql', 'mysql', 'newspeak', 'newspeak', 'povray', 'pov', 'rebol', 'rebol', 'redcode', 'redcode', 'smalltalk', 'smalltalk', 'sql', 'sql', 'tcsh', 'tcsh', 'cheetah', 'cheetah', 'coldfusion', 'cfs', 'django', 'django', 'erb', 'erb', 'action', 'actionscript', 'action3', 'actionscript3', 'coffee', 'coffeescript', 'css', 'css', 'haml', 'haml', 'haxe', 'hx', 'html', 'html', 'javascript', 'javascript', 'mxml', 'mxml', 'obj-j', 'objj', 'php', 'php', 'sass', 'sass', 'xml', 'xml', 'xslt', 'xslt');
+	
+	if ($text eq 'langs') { print_langs('sprunge', \%langs); }
+	
+	$lang = lc $lang;
+	if (not $langs{$lang}) { error("Language $lang not available for sprunge.\nTry `elmer -L sprunge`.", $errors{'language'}); }
+	else { $lang = $langs{$lang}; }
+	
+	$text = uri_escape($text);
+	
+	my $data = "sprunge=$text";
+	my $response = paste('http://sprunge.us/', $data);
+	
+	if ($response =~ m/(http:\/\/sprunge.us\/\w+)/) {
+		if ($lang) { print_url("$1?$lang"); }
+		else { print_url($1); }
+		
+	} else { error('Paste failed!', $errors{'paste'}); }
 }
 
 sub omp($) {
@@ -414,9 +430,11 @@ if (not $O{'stdin'}) {
 		}
 		find_service($input);
 	}
-} else {
+} elsif ($O{'stdin'}) {
 	while (<>) { $input .= $_; }
 	find_service($input);
+} else {
+	error('No input found.', $errors{'input'});
 }
 
 # Please adhere to the license attached.
