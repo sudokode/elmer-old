@@ -4,6 +4,8 @@ All of the planned services are finished. If you notice any problems, just let m
 I'll be using elmer myself, so any obvious bugs will prolly be fixed immediately, so
 remember to git pull before you report a bug.
 
+Unforunately, you have to use curl for omp and sudo because of a limitation in wget. :(
+
 There have been quite a few changes since I finished lodgeit. Wget and curl both work now.
 Elmer will try wget first, then try curl. If you for some reason just want it to go
 right to curl, just use -C. xclip support was added. Elmer can now read from the
