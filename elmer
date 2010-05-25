@@ -456,7 +456,7 @@ if (not $O{'stdin'}) {
 				if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
 				else { error("$_ cannot be read."); }
 				
-				if (not $input) { error('No input found.', $errors{'input'}); }
+				if (not chomp($input)) { error('No input found.', $errors{'input'}); }
 				find_service($input);
 			}
 		} else {
@@ -466,7 +466,7 @@ if (not $O{'stdin'}) {
 			
 			$input = `xclip -o`;
 			
-			if (not $input) { error('No input found.', $errors{'input'}); }
+			if (not chomp($input)) { error('No input found.', $errors{'input'}); }
 			
 			find_service($input);
 		}
@@ -484,7 +484,7 @@ if (not $O{'stdin'}) {
 			} else { error("$_ cannot be read."); }
 		}
 		
-		if (not $input) { error('No input found.', $errors{'input'}); }
+		if (not chomp($input)) { error('No input found.', $errors{'input'}); }
 		find_service($input);
 	}
 	
