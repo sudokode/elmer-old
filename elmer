@@ -44,7 +44,7 @@ foreach (keys(%env_vars)) { chomp($env_vars{$_}); }
 if (not $env_vars{'paste_default'}) { $env_vars{'paste_default'} = 'codepad'; }
 if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'sprunge'; }
 if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'lodgeit'; }
-if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'ompload'; }
+if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'omp'; }
 if (not $env_vars{'paste_lang'}) { $env_vars{'paste_lang'} = 'plain'; }
 if (not $env_vars{'paste_expire'}) { $env_vars{'paste_expire'} = '1d'; }
 if (not $env_vars{'paste_name'}) { $env_vars{'paste_name'} = 'anon'; }
@@ -368,33 +368,17 @@ sub sprunge($) {
 }
 
 sub omp($) {
-	my $data = shift;
-	chomp(my $time = `date +\%T`);
-	my $file = "/tmp/elmer-$time";
+	my $image = shift;
 	
-	open my $tmp, '>', $file;
-	print $tmp $data;
-	close $tmp;
-	
-	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
-	
-	system("rm $file");
+	my $response = paste_file('http://omploader.org/upload', "file1=\@'$image'");
 	
 	if ($response =~ m/(http:\/\/omploader.org\/v\w+)/) { print_url($1); }
 }
 
 sub sudo($) {
-	my $data = shift;
-	chomp(my $time = `date +\%T`);
-	my $file = "/tmp/elmer-$time";
+	my $image = shift;
 	
-	open my $tmp, '>', $file;
-	print $tmp $data;
-	close $tmp;
-	
-	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$file'");
-	
-	system("rm $file");
+	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
 	
 	if ($response =~ m/(http:\/\/sudokode.net\/p\/\d+)/) { print_url($1); }
 }
@@ -449,11 +433,19 @@ my $input = "";
 if (not $O{'stdin'}) {
 
 	if (not $O{'concat'}) {
+		if ($O{'service'} eq 'omp' || $O{'service'} eq 'sudo') {
+			foreach(@ARGV) {
+				if (-e $_) { find_service($_); }
+				else { error("$_ does not exist."); }
+			}
+			
+			exit(0);
+		}
 	
 		if (not $O{'xclip_in'}) {
 			foreach (@ARGV) {
 				if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
-				else { error("$_ cannot be read."); }
+				else { error("$_ does not exist."); }
 				
 				if (not chomp($input)) { error('No input found.', $errors{'input'}); }
 				find_service($input);
