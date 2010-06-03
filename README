@@ -1,8 +1,20 @@
 Don't forget to read the license before copying, distributing, or modifying.
 
+I've trashed the Getopt::Easy module, not because I don't like it, but because Getopt::Std
+is in perl core, so it makes elmer more portable. I've also been asked why I don't
+use Net::LWP. The simple answer there is that, just like Getopt::Easy, it's not a part
+of perl core, and since people are very likely to have either wget or curl, it's a
+portability thing.
+
+I've also made quite a few bug fixes, including xclip, the 'too many arguments'
+shell error when trying to paste hugeee files, and the giant if/else tree found in
+the bottom of the script. That's been replaced by a convenient switch statement
+that adds up the given options -dcX, similar to posix file permissions (1, 2, 4).
+This also allowed for errors to be thrown when weird options are used together.
+
 All of the planned services are finished. If you notice any problems, just let me know.
 I'll be using elmer myself, so any obvious bugs will prolly be fixed immediately, so
-remember to git pull before you report a bug.
+remember to grab the newest copy before you report a bug.
 
 Unforunately, you have to use curl for omp and sudo because of a limitation in wget. :(
 
@@ -42,7 +54,6 @@ Services finished:
 
 Dependencies include:
 	perl (for the script...) [REQUIRED]
-	Getopt::Easy (for the command line options) [REQUIRED] (http://search.cpan.org/~jonbj/Getopt-Easy-0.1/lib/Getopt/Easy.pm)
 	xclip (for input from and output to xclip) [OPTIONAL]
 	wget (for pasting with wget) [OPTION 1/2]
 	curl (for pasting with curl) [OPTION 2/2]
