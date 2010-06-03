@@ -171,6 +171,8 @@ sub paste($$) {
 	} else {
 		error('Could not find wget or curl.', $errors{'program'});
 	}
+	
+	system("rm -f $file");
 }
 
 sub paste_file($$) {
