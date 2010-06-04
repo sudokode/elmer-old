@@ -436,6 +436,7 @@ switch ($method) {
 		foreach (@ARGV) {
 			if (-e $_) { $input = `cat $_` || error("$_ cannot be read."); }
 			else { error("$_ does not exist."); }
+			
 			chomp($input);
 			if (not $input) { error('No input found.', $errors{'input'}); }
 			find_service($input);
@@ -471,7 +472,8 @@ switch ($method) {
 			} else { error("$_ cannot be read."); }
 		}
 		
-		if (not chomp($input)) { error('No input found.', $errors{'input'}); }
+		chomp($input);
+		if (not $input) { error('No input found.', $errors{'input'}); }
 		find_service($input);
 	}
 	
@@ -483,8 +485,8 @@ switch ($method) {
 		}
 		
 		$input = `xclip -o`;
-		
-		if (not chomp($input)) { error('No input found.', $errors{'input'}); }
+		chomp($input);
+		if (not $input) { error('No input found.', $errors{'input'}); }
 		
 		find_service($input);
 	}
