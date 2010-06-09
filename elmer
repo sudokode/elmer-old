@@ -76,8 +76,9 @@ if ($opts{'S'}) {
 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
-		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Any', "\n",
-		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n"
+		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n",
+		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n",
+		"\t", 'fbca', "\t\t", 'http://filebin.ca', "\t\t", 'Files', "\n"
 		;
 		
 	exit(0);
@@ -91,7 +92,8 @@ if ($opts{'o'}) {
 		lodgeit => 'text languages private',
 		sprunge => 'text languages',
 		omp => 'file',
-		sudo => 'image'
+		sudo => 'image',
+		fbca => 'file'
 	);
 	
 	print "Available options for ", $opts{'o'}, ":\n\t";
@@ -353,9 +355,9 @@ sub sprunge($) {
 }
 
 sub omp($) {
-	my $image = shift;
+	my $file = shift;
 	
-	my $response = paste_file('http://omploader.org/upload', "file1=\@'$image'");
+	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
 	
 	if ($response =~ m/(http:\/\/omploader.org\/v\w+)/) { print_url($1); }
 }
@@ -366,6 +368,14 @@ sub sudo($) {
 	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
 	
 	if ($response =~ m/(http:\/\/sudokode.net\/p\/\d+)/) { print_url($1); }
+}
+
+sub fbca($) {
+	my $file = shift;
+	
+	my $response = paste_file('http://filebin.ca/upload.php', "file=\@'$file'");
+	
+	if ($response =~ m/(http:\/\/filebin.ca\/\w+)\//) { print_url($1); }
 }
 
 sub find_service($) {
@@ -380,6 +390,7 @@ sub find_service($) {
 		case 'sprunge'		{ sprunge($input); }
 		case 'omp'		{ omp($input); }
 		case 'sudo'		{ sudo($input); }
+		case 'fbca'		{ fbca($input); }
 		default			{ error('Service ' . $opts{'s'} . ' not available.', $errors{'service'}); }
 	}
 }
@@ -424,7 +435,7 @@ my $input = '';
 use Switch;
 switch ($method) {
 	case 0 {
-		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo') {
+		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
 			foreach(@ARGV) {
 				if (-e $_) { find_service($_); }
 				else { error("$_ does not exist."); }
@@ -449,7 +460,7 @@ switch ($method) {
 	}
 	
 	case 2 {
-		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo') {
+		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
 			error('Cannot concatenate files when using omp or sudo.', $errors{'service'});
 		}
 		
