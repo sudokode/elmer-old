@@ -55,7 +55,7 @@ if ($opts{'h'}) {
 		
 		"Input options:\n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
-		"\t", '-d', "\t\t", 'use stdin (make this the last arg)', "\n",
+		"\t", '-d', "\t\t", 'use stdin', "\n",
 		"\t", '-X', "\t\t", 'use input from the X buffer with xclip', "\n\n",
 		
 		"Other options: \n",
