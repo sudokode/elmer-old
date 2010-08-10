@@ -6,27 +6,25 @@ use URI::Escape;
 my %opts = ();
 getopts('SL:E:o:123s:l:e:p:rn:t:u:cdxXhC', \%opts);
 
-our %env_vars = (
-	paste_default => `echo \$PASTEDEFAULT`,
-	paste1 => `echo \$PASTE1`,
-	paste2 => `echo \$PASTE2`,
-	paste3 => `echo \$PASTE3`,
-	paste_lang => `echo \$PASTELANG`,
-	paste_expire => `echo \$PASTEEXPIRE`,
-	paste_name => `echo \$PASTENAME`,
-	paste_user => `echo \$PASTEUSER`
+our %defaults = (
+	paste_default => $ENV{'PASTEDEFAULT'},
+	paste1 => $ENV{'PASTE1'},
+	paste2 => $ENV{'PASTE2'},
+	paste3 => $ENV{'PASTE3'},
+	paste_lang => $ENV{'PASTELANG'},
+	paste_expire => $ENV{'PASTEEXPIRE'},
+	paste_name => $ENV{'PASTENAME'},
+	paste_user => $ENV{'PASTEUSER'}
 );
 
-foreach (keys(%env_vars)) { chomp($env_vars{$_}); }
-
-if (not $env_vars{'paste_default'}) { $env_vars{'paste_default'} = 'codepad'; }
-if (not $env_vars{'paste1'}) { $env_vars{'paste1'} = 'sprunge'; }
-if (not $env_vars{'paste2'}) { $env_vars{'paste2'} = 'lodgeit'; }
-if (not $env_vars{'paste3'}) { $env_vars{'paste3'} = 'omp'; }
-if (not $env_vars{'paste_lang'}) { $env_vars{'paste_lang'} = 'plain'; }
-if (not $env_vars{'paste_expire'}) { $env_vars{'paste_expire'} = '1d'; }
-if (not $env_vars{'paste_name'}) { $env_vars{'paste_name'} = 'anon'; }
-if (not $env_vars{'paste_user'}) { $env_vars{'paste_user'} = ''; }
+$defaults{'paste_default'} ||= 'codepad';
+$defaults{'paste1'} ||= 'sprunge';
+$defaults{'paste2'} ||= 'lodgeit';
+$defaults{'paste3'} ||= 'omp';
+$defaults{'paste_lang'} ||= 'plain';
+$defaults{'paste_expire'} ||= '1d';
+$defaults{'paste_name'} ||= 'anon';
+$defaults{'paste_user'} ||= '';
 
 if ($opts{'h'}) {
 	print	"elmer -- the ultimate paste\n\n",
@@ -39,19 +37,19 @@ if ($opts{'h'}) {
 		"\t", '-o <service>', "\t", 'print options for service', "\n\n",
 		
 		"Paste options:\n",
-		"\t", '-s <service>', "\t", 'paste service (default: ', $env_vars{'paste_default'}, ')', "\n",
-		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $env_vars{'paste_lang'}, ')', "\n",
-		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $env_vars{'paste_expire'}, ')', "\n",
+		"\t", '-s <service>', "\t", 'paste service (default: ', $defaults{'paste_default'}, ')', "\n",
+		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $defaults{'paste_lang'}, ')', "\n",
+		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $defaults{'paste_expire'}, ')', "\n",
 		"\t", '-p', "\t\t", 'private paste', "\n",
 		"\t", '-r', "\t\t", 'run paste', "\n",
 		"\t", '-t <title>', "\t", 'paste title', "\n",
-		"\t", '-n <name>', "\t", 'paster name (default: ', $env_vars{'paste_name'}, ')', "\n",
-		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $env_vars{'paste_user'}, ')', "\n\n",
+		"\t", '-n <name>', "\t", 'paster name (default: ', $defaults{'paste_name'}, ')', "\n",
+		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $defaults{'paste_user'}, ')', "\n\n",
 		
 		"Quick service options:\n",
-		"\t", '-1', "\t\t", $env_vars{'paste1'}, "\n",
-		"\t", '-2', "\t\t", $env_vars{'paste2'}, "\n",
-		"\t", '-3', "\t\t", $env_vars{'paste3'}, "\n\n",
+		"\t", '-1', "\t\t", $defaults{'paste1'}, "\n",
+		"\t", '-2', "\t\t", $defaults{'paste2'}, "\n",
+		"\t", '-3', "\t\t", $defaults{'paste3'}, "\n\n",
 		
 		"Input options:\n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
@@ -124,7 +122,7 @@ sub error {
 sub check_prog($) {
 	my $prog = shift;
 	
-	if (system("which $prog &>/dev/null") == 0) { return 1; }
+	if (! system("which $prog &>/dev/null")) { return 1; }
 	else { return 0; }
 }
 
@@ -184,7 +182,7 @@ sub paste_file($$) {
 	if (check_prog('curl')) {
 		return `curl -is $host -F $data`;
 	} else {
-		error('curl is required for omp and sudo because wget does not support multipart/form-data, send all complaints their way :(', $errors{'program'});
+		error('curl is required for omp, sudo, and fbca because wget does not support multipart/form-data, send all complaints their way :(', $errors{'program'});
 	}
 }
 
@@ -206,7 +204,7 @@ sub print_url($) {
 
 sub codepad($) {
 	my $text = shift;
-	my $lang = $opts{'l'} || $env_vars{'paste_lang'};
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
 	my $run = $opts{'r'};	# True or False
 	my $private = $opts{'p'};	#True or False
 	
@@ -235,11 +233,11 @@ sub codepad($) {
 
 sub pbcom($) {
 	my $text = shift;
-	my $lang = $opts{'l'} || $env_vars{'paste_lang'};
-	my $expiration = $opts{'e'} || $env_vars{'paste_expire'};
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
+	my $expiration = $opts{'e'} || $defaults{'paste_expire'};
 	my $private = $opts{'p'};	# 0 or 1
 	my $title = $opts{'t'};
-	my $user = $opts{'u'} || $env_vars{'paste_user'};
+	my $user = $opts{'u'} || $defaults{'paste_user'};
 	
 	my %langs = ('plain', 1, 'action', 2, 'action3', 74, 'ada', 3, 'apache', 4, 'apple', 5, 'apt', 75, 'asm', 6, 'asp', 7, 'bash', 8, 'brainfuck', 79, 'c', 9, 'c#', 14, 'c++', 13, 'cmake', 83, 'cobol', 84, 'coldfusion', 15, 'css', 16, 'd', 17, 'delphi', 18, 'diff', 19, 'dos', 20, 'eiffel', 21, 'email', 88, 'erlang', 57, 'fortran', 22, 'freebasic', 23, 'gettext', 90, 'haskell', 60, 'html', 25, 'ini', 26, 'intercal', 95, 'java', 27, 'java5', 97, 'javascript', 28, 'latex', 62, 'lisp', 29, 'lua', 30, 'make', 106, 'matlab', 31, 'mirc', 66, 'modula3', 107, 'mxml', 108, 'mysql', 33, 'ojb-c', 35, 'ocaml', 36, 'pascal', 39, 'perl', 40, 'php', 41, 'powersh', 117, 'prolog', 119, 'python', 42, 'qbasic', 43, 'rails', 67, 'ruby', 45, 'scala', 125, 'scheme', 46, 'scilab', 126, 'smalltalk', 69, 'sql', 48, 'tcl', 49, 'unreal', 71, 'vb.net', 51, 'vim', 134, 'vbasic', 50, 'whois', 137, 'xml', 53, 'xorg', 139);
 	
@@ -276,9 +274,9 @@ sub pbcom($) {
 
 sub pborg($) {
 	my $text = shift;
-	my $lang = $opts{'l'} || $env_vars{'paste_lang'};
-	my $expiration = $opts{'e'} || $env_vars{'paste_expire'};
-	my $name = $opts{'n'} || $env_vars{'paste_name'};
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
+	my $expiration = $opts{'e'} || $defaults{'paste_expire'};
+	my $name = $opts{'n'} || $defaults{'paste_name'};
 	
 	my %langs = ('plain', 'text', 'action', 'actionscript', 'ada', 'ada', 'apache', 'apache', 'apple', 'applescript', 'asm', 'asm', 'asp', 'asp', 'bash', 'bash', 'c', 'c', 'c++', 'cpp', 'c#', 'csharp', 'coldfusion', 'cfm', 'css', 'css', 'd', 'd', 'delphi', 'delphi', 'diff', 'diff', 'dos', 'dos', 'eiffel', 'eiffel', 'fortran', 'fortran', 'freebasic', 'freebasic', 'html', 'html4strict', 'ini', 'ini', 'java', 'java', 'javascript', 'javascript', 'lisp', 'lisp', 'lua', 'lua', 'matlab', 'matlab', 'mpasm', 'mpasm', 'mysql', 'mysql', 'nullsoft', 'nsis', 'obj-c', 'objc', 'ocaml', 'ocaml', 'openoffice', 'oobas', 'oracle8', 'oracle8', 'pascal', 'pascal', 'perl', 'perl', 'php', 'php', 'python', 'python', 'qbasic', 'qbasic', 'robots', 'robots', 'ruby', 'ruby', 'scheme', 'scheme', 'smarty', 'smarty', 'sql', 'sql', 'tcl', 'tcl', 'vbasic', 'vb', 'vb.net', 'vbnet', 'xml', 'xml');
 	
@@ -306,7 +304,7 @@ sub pborg($) {
 
 sub lodgeit($) {
 	my $text = shift;
-	my $lang = $opts{'l'} || $env_vars{'paste_lang'};
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
 	my $private = $opts{'p'};	# on or NULL
 	
 	my %langs = ('plain', 'text', 'apache', 'apache', 'bash', 'bash', 'batch', 'bat', 'boo', 'boo', 'brainfuck', 'brainfuck', 'c', 'c', 'c#', 'csharp', 'c++', 'cpp', 'clojure', 'clojure', 'creole', 'creole', 'css', 'css', 'csv', 'csv', 'd', 'd', 'control', 'control', 'django', 'html+django', 'dylan', 'dylan', 'erlang', 'erlang', 'rhtml', 'rhtml', 'gas', 'gas', 'gcc', 'gcc-messages', 'genshi', 'genshi', 'gettext', 'gettext', 'opengl', 'glsl', 'go', 'go', 'haskell', 'haskell', 'html', 'html', 'ini', 'ini', 'irb', 'irb', 'io', 'io', 'irc', 'irc', 'java', 'java', 'javac', 'javac-messages', 'javascript', 'js', 'jsp', 'jsp', 'lighty', 'lighttpd', 'lithaskell', 'literate-haskell', 'llvm', 'llvm', 'lua', 'lua', 'mako', 'html+mako', 'matlab', 'matlab', 'matlab-sess', 'matlabsession', 'minid', 'minid', 'multi', 'multi', 'myghty', 'html+myghty', 'mysql', 'mysql', 'nasm', 'nasm', 'nginx', 'nginx', 'delphi', 'objectpascal', 'ocaml', 'ocaml', 'perl', 'perl', 'php', 'html+php', 'povray', 'povray', 'python', 'python', 'pycon', 'pycon', 'pytb', 'pytb', 'rst', 'rst', 'ruby', 'ruby', 'scala', 'scala', 'scheme', 'scheme', 'smalltalk', 'smalltalk', 'smarty', 'smarty', 'sources', 'sourceslist', 'sql', 'sql', 'squidconf', 'squidconf', 'tex', 'tex', 'diff', 'diff', 'vim', 'vim', 'xml', 'xml', 'xslt', 'xslt', 'yaml', 'yaml');
@@ -332,7 +330,7 @@ sub lodgeit($) {
 
 sub sprunge($) {
 	my $text = shift;
-	my $lang = $opts{'l'} || $env_vars{'paste_lang'};
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
 	
 	my %langs = ('plain', 'text', 'clojure', 'clojure', 'io', 'io', 'lua', 'lua', 'minid', 'minid', 'perl', 'perl', 'python', 'python', 'python3', 'python3', 'ruby', 'ruby', 'tcl', 'tcl', 'gas', 'gas', 'llvm', 'llvm', 'asm', 'nasm', 'ada', 'ada', 'c', 'c', 'c++', 'cpp', 'cython', 'cython', 'd', 'd', 'delphi', 'delphi', 'dylan', 'dylan', 'felix', 'felix', 'fortran', 'fortran', 'opengl', 'glsl', 'go', 'go', 'java', 'java', 'modula2', 'modula2', 'obj-c', 'objc', 'ooc', 'ooc', 'prolog', 'prolog', 'scala', 'scala', 'vala', 'vala', 'boo', 'boo', 'aspx-c#', 'aspx-cs', 'c#', 'csharp', 'aspx-vb', 'aspx-vb', 'vb.net', 'vbnet', 'lisp', 'cl', 'erlang', 'erlang', 'erl', 'erl', 'haskell', 'haskell', 'haskell-lit', 'lhs', 'ocaml', 'ocaml', 'scheme', 'scheme', 'matlab', 'matlab', 'mupad', 'mupad', 'numpy', 'numpy', 'rconsole', 'rconsole', 's', 's', 'abap', 'abap', 'apple', 'applescript', 'asymptote', 'asymptote', 'bash', 'bash', 'batch', 'bat', 'befunge', 'befunge', 'brainfuck', 'brainfuck', 'gherkin', 'gherkin', 'gnuplot', 'gnuplot', 'logtalk', 'logtalk', 'moocode', 'moocode', 'modelica', 'modelica', 'mysql', 'mysql', 'newspeak', 'newspeak', 'povray', 'pov', 'rebol', 'rebol', 'redcode', 'redcode', 'smalltalk', 'smalltalk', 'sql', 'sql', 'tcsh', 'tcsh', 'cheetah', 'cheetah', 'coldfusion', 'cfs', 'django', 'django', 'erb', 'erb', 'action', 'actionscript', 'action3', 'actionscript3', 'coffee', 'coffeescript', 'css', 'css', 'haml', 'haml', 'haxe', 'hx', 'html', 'html', 'javascript', 'javascript', 'mxml', 'mxml', 'obj-j', 'objj', 'php', 'php', 'sass', 'sass', 'xml', 'xml', 'xslt', 'xslt');
 	
@@ -420,10 +418,10 @@ if ($opts{'E'}) {
 	exit(0);
 }
 
-if ($opts{'1'} && $env_vars{'paste1'}) { $opts{'s'} = $env_vars{'paste1'}; }
-elsif ($opts{'2'} && $env_vars{'paste2'}) { $opts{'s'} = $env_vars{'paste2'}; }
-elsif ($opts{'3'} && $env_vars{'paste3'}) { $opts{'s'} = $env_vars{'paste3'}; }
-elsif (not $opts{'s'} && $env_vars{'paste_default'}) { $opts{'s'} = $env_vars{'paste_default'}; }
+if ($opts{'1'} && $defaults{'paste1'}) { $opts{'s'} = $defaults{'paste1'}; }
+elsif ($opts{'2'} && $defaults{'paste2'}) { $opts{'s'} = $defaults{'paste2'}; }
+elsif ($opts{'3'} && $defaults{'paste3'}) { $opts{'s'} = $defaults{'paste3'}; }
+elsif (not $opts{'s'} && $defaults{'paste_default'}) { $opts{'s'} = $defaults{'paste_default'}; }
 
 # Same with file permissions: -d = 1, -c = 2, -X = 4
 my $method = 0;
