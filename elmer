@@ -4,9 +4,9 @@ use Getopt::Std;
 use URI::Escape;
 
 my %opts = ();
-getopts('SL:E:o:123s:l:e:p:rn:t:u:cdxXhC', \%opts);
+getopts('SL:E:o:123s:l:e:p:rn:t:u:D:cdxXhC', \%opts);
 
-our %defaults = (
+my %defaults = (
 	paste_default => $ENV{'PASTEDEFAULT'},
 	paste1 => $ENV{'PASTE1'},
 	paste2 => $ENV{'PASTE2'},
@@ -27,7 +27,7 @@ $defaults{'paste_name'} ||= 'anon';
 $defaults{'paste_user'} ||= '';
 
 if ($opts{'h'}) {
-	print	"elmer -- the ultimate paste\n\n",
+	print	"elmer -- the stuff you used to huff in school\n\n",
 		
 		"Help options:\n",
 		"\t", '-h', "\t\t", 'print this help menu', "\n",
@@ -44,7 +44,8 @@ if ($opts{'h'}) {
 		"\t", '-r', "\t\t", 'run paste', "\n",
 		"\t", '-t <title>', "\t", 'paste title', "\n",
 		"\t", '-n <name>', "\t", 'paster name (default: ', $defaults{'paste_name'}, ')', "\n",
-		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $defaults{'paste_user'}, ')', "\n\n",
+		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $defaults{'paste_user'}, ')', "\n",
+		"\t", '-D <desc>', "\t", 'paste description', "\n\n",
 		
 		"Quick service options:\n",
 		"\t", '-1', "\t\t", $defaults{'paste1'}, "\n",
@@ -73,6 +74,7 @@ if ($opts{'S'}) {
 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
+		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
 		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n",
 		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n",
@@ -88,6 +90,7 @@ if ($opts{'o'}) {
 		pbcom => 'text languages expirations private title user',
 		pborg => 'text languages expirations name',
 		lodgeit => 'text languages private',
+		rafb => 'text languages name description',
 		sprunge => 'text languages',
 		omp => 'file',
 		sudo => 'image',
@@ -101,7 +104,7 @@ if ($opts{'o'}) {
 	exit(0);
 }
 
-our %errors = (
+my %errors = (
 	service => 1,		# Service unavailable
 	language => 2,		# Language unavailable for service
 	expire => 3,		# Expire unavailable for service
@@ -227,7 +230,7 @@ sub codepad($) {
 	my $data = "run=$run&lang=$lang&private=$private&code=$text&submit=Submit";
 	my $response = paste('http://codepad.org/', $data);
 	
-	if ($response =~ m/(http:\/\/codepad.org\/\w+)/) { print_url($1); }
+	if ($response =~ m{(http://codepad.org/\w+)}) { print_url($1); }
 	else { error('Paste failed!', $errors{'paste'}); }
 }
 
@@ -263,10 +266,10 @@ sub pbcom($) {
 	$url .= 'pastebin.com/post.php';
 	my $response = paste($url, $data);
 	
-	if ($response =~ m/http:\/\/pastebin.com\/spam.php\?i=(\w+)/) {
+	if ($response =~ m{http://pastebin.com/spam.php\?i=(\w+)}) {
 		print_url("http://pastebin.com/spam.php?i=$1");
 		
-	} elsif ($response =~ m/http:\/\/pastebin.com\/(\w+)/ || $response =~ m/location: \/(\w+)/) {
+	} elsif ($response =~ m{http://pastebin.com/(\w+)} || $response =~ m/location: \/(\w+)/) {
 		print_url("http://pastebin.com/$1");
 		
 	} else { error('Paste failed!', $errors{'paste'}); }
@@ -298,7 +301,7 @@ sub pborg($) {
 	my $data = "format=$lang&code2=$text&poster=$name&expiry=$expiration&paste=Send";
 	my $response = paste('http://pastebin.org/pastebin.php', $data);
 	
-	if ($response =~ m/(http:\/\/pastebin.org\/\d+)/) { print_url($1); }
+	if ($response =~ m{(http://pastebin.org/\d+)}) { print_url($1); }
 	else { error('Paste failed!', $errors{'paste'}); }
 }
 
@@ -322,9 +325,37 @@ sub lodgeit($) {
 	$data .= 'submit=Paste!';
 	my $response = paste('http://paste.pocoo.org/', $data);
 	
-	if ($response =~ m/\/raw\/(\d+)/ ||$response =~ m/Location:.*\/(\d+)/) {
+	if ($response =~ m:/raw/(\d+): || $response =~ m{Location:.*/(\d+)}) {
 		print_url("http://paste.pocoo.org/show/$1/");
 		
+	} else { error('Paste failed!', $errors{'paste'}); }
+}
+
+sub rafb($) {
+	my $text = shift;
+	my $lang = $opts{'l'} || $defaults{'paste_lang'};
+	my $name = $opts{'n'} || $defaults{'paste_name'};
+	my $desc = $opts{'D'};
+	
+	my %langs = ('c89', 'C89', 'c', 'C', 'c++', 'C++', 'java', 'Java', 'pascal', 'Pascal', 'perl', 'Perl', 'php', 'PHP', 'pl/i', 'PL/I', 'python', 'Python', 'ruby', 'Ruby', 'sql', 'SQL', 'vb', 'VB', 'plain', 'Plain Text');
+	
+	if ($text eq 'langs') { print_langs('rafb', \%langs); }
+	
+	$lang = lc $lang;
+	if (not $langs{$lang}) { error("Language $lang not available for rafb.\nTry `elmer -L rafb`.", $errors{'language'}); }
+	else { $lang = $langs{$lang}; }
+	
+	$desc = uri_escape($desc) if $desc;
+	$text = uri_escape($text);
+	
+	my $data = "lang=$lang";
+	$data .= "&nick=$name" if $name;
+	$data .= "&desc=$desc" if $desc;
+	$data .= "&text=$text";
+	
+	my $response = paste('http://rafb.me/paste.php', $data);
+	if ($response =~ m{(http://www.rafb.me/results/\w+\.html)}i) {
+		print_url($1);
 	} else { error('Paste failed!', $errors{'paste'}); }
 }
 
@@ -345,7 +376,7 @@ sub sprunge($) {
 	my $data = "sprunge=$text";
 	my $response = paste('http://sprunge.us/', $data);
 	
-	if ($response =~ m/(http:\/\/sprunge.us\/\w+)/) {
+	if ($response =~ m{(http://sprunge.us/\w+)}) {
 		if ($lang) { print_url("$1?$lang"); }
 		else { print_url($1); }
 		
@@ -357,7 +388,7 @@ sub omp($) {
 	
 	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
 	
-	if ($response =~ m/(http:\/\/omploader.org\/v\w+)/) { print_url($1); }
+	if ($response =~ m{(http://omploader.org/v\w+)}) { print_url($1); }
 }
 
 sub sudo($) {
@@ -365,7 +396,7 @@ sub sudo($) {
 	
 	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
 	
-	if ($response =~ m/(http:\/\/sudokode.net\/p\/\d+)/) { print_url($1); }
+	if ($response =~ m{(http://sudokode.net/p/\d+)}) { print_url($1); }
 }
 
 sub fbca($) {
@@ -373,7 +404,7 @@ sub fbca($) {
 	
 	my $response = paste_file('http://filebin.ca/upload.php', "file=\@'$file'");
 	
-	if ($response =~ m/(http:\/\/filebin.ca\/\w+)\//) { print_url($1); }
+	if ($response =~ m{(http://filebin.ca/\w+)/}) { print_url($1); }
 }
 
 sub find_service($) {
@@ -385,6 +416,7 @@ sub find_service($) {
 		case 'pbcom'		{ pbcom($input); }
 		case 'pborg'		{ pborg($input); }
 		case 'lodgeit'		{ lodgeit($input); }
+		case 'rafb'		{ rafb($input); }
 		case 'sprunge'		{ sprunge($input); }
 		case 'omp'		{ omp($input); }
 		case 'sudo'		{ sudo($input); }
@@ -400,6 +432,7 @@ if ($opts{'L'}) {
 		case 'pbcom'		{ pbcom('langs'); }
 		case 'pborg'		{ pborg('langs'); }
 		case 'lodgeit'		{ lodgeit('langs'); }
+		case 'rafb'		{ rafb('langs'); }
 		case 'sprunge'		{ sprunge('langs'); }
 		default			{ error('No languages for ' . $opts{'L'} . '.', $errors{'language'}); }
 	}
