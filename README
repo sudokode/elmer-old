@@ -1,44 +1,7 @@
 Don't forget to read the license before copying, distributing, or modifying.
 
-I've trashed the Getopt::Easy module, not because I don't like it, but because Getopt::Std
-is in perl core, so it makes elmer more portable. I've also been asked why I don't
-use Net::LWP. The simple answer there is that, just like Getopt::Easy, it's not a part
-of perl core, and since people are very likely to have either wget or curl, it's a
-portability thing.
 
-I've also made quite a few bug fixes, including xclip, the 'too many arguments'
-shell error when trying to paste hugeee files, and the giant if/else tree found in
-the bottom of the script. That's been replaced by a convenient switch statement
-that adds up the given options -dcX, similar to posix file permissions (1, 2, 4).
-This also allowed for errors to be thrown when weird options are used together.
-
-All of the planned services are finished. If you notice any problems, just let me know.
-I'll be using elmer myself, so any obvious bugs will prolly be fixed immediately, so
-remember to grab the newest copy before you report a bug.
-
-Unforunately, you have to use curl for omp and sudo because of a limitation in wget. :(
-
-There have been quite a few changes since I finished lodgeit. Wget and curl both work now.
-Elmer will try wget first, then try curl. If you for some reason just want it to go
-right to curl, just use -C. xclip support was added. Elmer can now read from the
-clipboard and paste urls to the clipboard with -X and -x, respectively. And another
-major change is the option to use environment variables. If any of them are not set,
-elmer has built-in defaults or you will be required to enter them on the command line.
-If you choose to use them, it can greatly speed of the process of pasting. The variables
-are as follows:
-
-	$PASTEDEFAULT (the default paste service)
-	$PASTE1 (favorite service 1, option -1)
-	$PASTE2 (favorite service 2, option -2)
-	$PASTE3 (favorite service 3, option -3)
-	$PASTELANG (the default paste language) <- NOT RECOMMENDED IN MOST CASES
-	$PASTEEXPIRE (the default paste expiration)
-	$PASTENAME (the default name of the paster)
-	$PASTEUSER (the default user, used for personal bins, i.e. johndoe.pastebin.com)
-
-You can view the current defaults (whether set by env-var or built in) with -h. Elmer
-can also read from stdin with -d now. It can also paste multiple files (by default) and
-optionally concatenate them, prefixed with their name, with -c.
+You can view the current defaults (whether set by env-var or built in) with -h.
 
 
 Services finished:
@@ -59,3 +22,16 @@ Dependencies include:
 	xclip (for input from and output to xclip) [OPTIONAL]
 	wget (for pasting with wget) [OPTION 1/2]
 	curl (for pasting with curl) [OPTION 2/2]
+
+
+You can use the following environment variables to temporarily or permanently change
+the default options:
+
+	$PASTEDEFAULT (the default paste service, option -s)
+	$PASTE1 (favorite service 1, option -1)
+	$PASTE2 (favorite service 2, option -2)
+	$PASTE3 (favorite service 3, option -3)
+	$PASTELANG (the default paste language, option -l)
+	$PASTEEXPIRE (the default paste expiration, option -e)
+	$PASTENAME (the default name of the paster, option -n)
+	$PASTEUSER (the default user, used for personal bins, i.e. foobar.pastebin.com, option -u)
