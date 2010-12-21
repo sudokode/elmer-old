@@ -74,7 +74,7 @@ if ($opts{'S'}) {
 		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
 		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
-		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t", 'Text', "\n",
+		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
 		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n",
 		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n",
@@ -394,9 +394,9 @@ sub omp($) {
 sub sudo($) {
 	my $image = shift;
 	
-	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
+	my $response = paste_file('http://sudokode.net/', "image=\@'$image'");
 	
-	if ($response =~ m{(http://sudokode.net/p/\d+)}) { print_url($1); }
+	if ($response =~ m{"(p/\d+\.\w+)"}) { print_url("http://sudokode.net/$1"); }
 }
 
 sub fbca($) {
