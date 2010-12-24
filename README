@@ -6,15 +6,15 @@ You can view the current defaults (whether set by env-var or built in) with -h.
 
 Services finished:
 
-	codepad.org        (codepad)
-	pastebin.com       (pbcom)
-	pastebin.org       (pborg)
-	paste.pocoo.org    (lodgeit)
-	rafb.me		 	    (rafb)
-	sprunge.us         (sprunge)
-	ompldr.org	       (omp)
-	sudokode.net       (sudo)
-	filebin.ca         (fbca)
+	codepad.org       (codepad)
+	pastebin.com      (pbcom)
+	pastebin.org      (pborg)
+	paste.pocoo.org   (lodgeit)
+	rafb.me           (rafb)
+	sprunge.us        (sprunge)
+	ompldr.org        (omp)
+	sudokode.net      (sudo)
+	filebin.ca        (fbca)
 
 
 Dependencies include:
