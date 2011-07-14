@@ -1,5 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
+
+# Copyright (C) 2011 by sudokode <sudokode@gmail.com>
+# This code is released under the terms of the SPL.
+# Please read the attached copy of the license.
+
+use warnings;
 use strict;
+use feature 'switch';
 use Getopt::Std;
 use URI::Escape;
 
@@ -27,7 +34,7 @@ $defaults{'paste_name'} ||= 'anon';
 $defaults{'paste_user'} ||= '';
 
 if ($opts{'h'}) {
-	print	"elmer -- the stuff you used to huff in school\n\n",
+	print	"elmer -- smell my code\n\n",
 		
 		"Help options:\n",
 		"\t", '-h', "\t\t", 'print this help menu', "\n",
@@ -77,25 +84,20 @@ if ($opts{'S'}) {
 		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
 		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n",
-		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n",
-		"\t", 'fbca', "\t\t", 'http://filebin.ca', "\t\t", 'Files', "\n"
-		;
+		"\t", 'fbca', "\t\t", 'http://filebin.ca', "\t\t", 'Files', "\n",
+		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n";
 		
 	exit(0);
 }
 
 if ($opts{'o'}) {
 	my %options = (
-		codepad => 'text languages private run',
-		pbcom => 'text languages expirations private title user',
-		pborg => 'text languages expirations name',
-		lodgeit => 'text languages private',
-		rafb => 'text languages name description',
-		sprunge => 'text languages',
-		omp => 'file',
-		sudo => 'image',
-		fbca => 'file'
-	);
+		codepad => 'language private run',
+		pbcom => 'language expiration private title user',
+		pborg => 'language expiration name',
+		lodgeit => 'language private',
+		rafb => 'language name description',
+		sprunge => 'language' );
 	
 	print "Available options for ", $opts{'o'}, ":\n\t";
 	my @opt = split(' ', $options{$opts{'o'}});
@@ -108,10 +110,10 @@ my %errors = (
 	service => 1,		# Service unavailable
 	language => 2,		# Language unavailable for service
 	expire => 3,		# Expire unavailable for service
-	input => 4,		# No input to paste (file or stdin)
-	file => 5,		# File cannot be read
+	input => 4,			# No input to paste (file or stdin)
+	file => 5,			# File cannot be read
 	program => 6,		# Cannot find wget, curl, or xclip
-	paste => 7		# Paste failed
+	paste => 7			# Paste failed
 );
 
 sub error {
@@ -119,14 +121,15 @@ sub error {
 	my $code = shift;
 	
 	print "$msg\n";
-	if ($code) { exit($code); }
+	exit($code) if $code;
 }
 
 sub check_prog($) {
 	my $prog = shift;
 	
-	if (! system("which $prog &>/dev/null")) { return 1; }
-	else { return 0; }
+	return 1 unless system("which $prog &>/dev/null");
+	
+	return 0;
 }
 
 sub print_langs($$) {
@@ -135,7 +138,7 @@ sub print_langs($$) {
 	
 	print "Available languages for $service:\n";
 	
-	foreach (sort(keys(%langs))) {
+	foreach (sort keys(%langs)) {
 		print "\t", $_, "\n";
 	}
 	
@@ -175,7 +178,7 @@ sub paste($$) {
 		error('Could not find wget or curl.', $errors{'program'});
 	}
 	
-	system("rm -f $file");
+	unlink $file;
 }
 
 sub paste_file($$) {
@@ -185,7 +188,7 @@ sub paste_file($$) {
 	if (check_prog('curl')) {
 		return `curl -is $host -F $data`;
 	} else {
-		error('curl is required for omp, sudo, and fbca because wget does not support multipart/form-data, send all complaints their way :(', $errors{'program'});
+		error('curl is required for omp, sudo, and fbca because wget does not support multipart/form-data', $errors{'program'});
 	}
 }
 
@@ -208,12 +211,12 @@ sub print_url($) {
 sub codepad($) {
 	my $text = shift;
 	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $run = $opts{'r'};	# True or False
-	my $private = $opts{'p'};	#True or False
+	my $run = $opts{'r'};
+	my $private = $opts{'p'};
 	
 	my %langs = ('plain', 'Plain Text', 'c', 'C', 'c++', 'C++', 'd', 'D', 'haskell', 'Haskell', 'lua', 'Lua', 'ocaml', 'OCaml', 'php', 'PHP', 'perl', 'Perl', 'python', 'Python', 'ruby', 'Ruby', 'scheme', 'Scheme', 'tcl', 'Tcl');
 	
-	if ($text eq 'langs') { print_langs('codepad', \%langs); }
+	print_langs('codepad', \%langs) if ($text eq 'langs'); 
 	
 	$lang = lc $lang;
 	if (not $langs{$lang}) { error("Language $lang not available for codepad.\nTry `elmer -L codepad`.", $errors{'language'}); }
@@ -394,9 +397,9 @@ sub omp($) {
 sub sudo($) {
 	my $image = shift;
 	
-	my $response = paste_file('http://sudokode.net/', "image=\@'$image'");
+	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
 	
-	if ($response =~ m{"(p/\d+\.\w+)"}) { print_url("http://sudokode.net/$1"); }
+	if ($response =~ m{(http://sudokode.net/p/\d+)}) { print_url($1); }
 }
 
 sub fbca($) {
@@ -410,30 +413,28 @@ sub fbca($) {
 sub find_service($) {
 	my $input = shift;
 	
-	use Switch;
-	switch (lc $opts{'s'}) {
-		case 'codepad'		{ codepad($input); }
-		case 'pbcom'		{ pbcom($input); }
-		case 'pborg'		{ pborg($input); }
-		case 'lodgeit'		{ lodgeit($input); }
-		case 'rafb'		{ rafb($input); }
-		case 'sprunge'		{ sprunge($input); }
-		case 'omp'		{ omp($input); }
-		case 'sudo'		{ sudo($input); }
-		case 'fbca'		{ fbca($input); }
+	given (lc $opts{'s'}) {
+		when ('codepad')		{ codepad($input); }
+		when ('pbcom')		{ pbcom($input); }
+		when ('pborg')		{ pborg($input); }
+		when ('lodgeit')		{ lodgeit($input); }
+		when ('rafb')		{ rafb($input); }
+		when ('sprunge')		{ sprunge($input); }
+		when ('omp')		{ omp($input); }
+		when ('sudo')		{ sudo($input); }
+		when ('fbca')		{ fbca($input); }
 		default			{ error('Service ' . $opts{'s'} . ' not available.', $errors{'service'}); }
 	}
 }
 
 if ($opts{'L'}) {
-	use Switch;
-	switch (lc $opts{'L'}) {
-		case 'codepad'		{ codepad('langs'); }
-		case 'pbcom'		{ pbcom('langs'); }
-		case 'pborg'		{ pborg('langs'); }
-		case 'lodgeit'		{ lodgeit('langs'); }
-		case 'rafb'		{ rafb('langs'); }
-		case 'sprunge'		{ sprunge('langs'); }
+	given (lc $opts{'L'}) {
+		when ('codepad')		{ codepad('langs'); }
+		when ('pbcom')		{ pbcom('langs'); }
+		when ('pborg')		{ pborg('langs'); }
+		when ('lodgeit')		{ lodgeit('langs'); }
+		when ('rafb')		{ rafb('langs'); }
+		when ('sprunge')		{ sprunge('langs'); }
 		default			{ error('No languages for ' . $opts{'L'} . '.', $errors{'language'}); }
 	}
 	
@@ -441,10 +442,9 @@ if ($opts{'L'}) {
 }
 
 if ($opts{'E'}) {
-	use Switch;
-	switch (lc $opts{'E'}) {
-		case 'pbcom'		{ pbcom('exp'); }
-		case 'pborg'		{ pborg('exp'); }
+	given (lc $opts{'E'}) {
+		when ('pbcom')		{ pbcom('exp'); }
+		when ('pborg')		{ pborg('exp'); }
 		default			{ error('No expirations for ' . $opts{'E'} . '.', $errors{'expire'}); }
 	}
 	
@@ -463,9 +463,8 @@ if ($opts{'c'}) { $method += 2; }
 if ($opts{'X'}) { $method += 4; }
 
 my $input = '';
-use Switch;
-switch ($method) {
-	case 0 {
+given ($method) {
+	when (0) {
 		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
 			foreach(@ARGV) {
 				if (-e $_) { find_service($_); }
@@ -485,12 +484,12 @@ switch ($method) {
 		}
 	}
 
-	case 1 {
+	when (1) {
 		while (<>) { $input .= $_; }
 		find_service($input);
 	}
 	
-	case 2 {
+	when (2) {
 		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
 			error('Cannot concatenate files when using omp or sudo.', $errors{'service'});
 		}
@@ -519,9 +518,9 @@ switch ($method) {
 		find_service($input);
 	}
 	
-	case 3 { error('Cannot concatenate stdin...', $errors{'input'}); }
+	when (3) { error('Cannot concatenate stdin...', $errors{'input'}); }
 	
-	case 4 {
+	when (4) {
 		if (not check_prog('xclip')) {
 			error('This option requires xclip', $errors{'program'});
 		}
@@ -533,14 +532,12 @@ switch ($method) {
 		find_service($input);
 	}
 	
-	case 5 { error('Cannot read from stdin AND xclip...', $errors{'input'}); }
+	when (5) { error('Cannot read from stdin AND xclip...', $errors{'input'}); }
 	
-	case 6 { error('Cannot concatenate xclip data...', $errors{'input'}); }
+	when (6) { error('Cannot concatenate xclip data...', $errors{'input'}); }
 	
-	case 7 { error('Make up your mind. Cannot read from stdin AND xclip OR concatenate data from EITHER...', $errors{'input'}); }
+	when (7) { error('Make up your mind. Cannot read from stdin AND xclip OR concatenate data from EITHER...', $errors{'input'}); }
 	
 	default { error('No input found.', $errors{'input'}); }
 }
 
-# Please adhere to the license attached.
-# Copyright (C) 2010 by Tim Paris <sudokode@gmail.com>
