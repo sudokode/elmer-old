@@ -7,21 +7,19 @@ You can view the current defaults (whether set by env-var or built in) with -h.
 Services finished:
 
 	codepad.org       (codepad)
-	pastebin.com      (pbcom)
-	pastebin.org      (pborg)
 	paste.pocoo.org   (lodgeit)
 	rafb.me           (rafb)
 	sprunge.us        (sprunge)
 	ompldr.org        (omp)
-	sudokode.net      (sudo)
-	filebin.ca        (fbca)
 
 
 Dependencies include:
 	perl (for the script...) [REQUIRED]
+	perl-uri (URI::Escape) [REQUIRED]
+
 	xclip (for input from and output to xclip) [OPTIONAL]
-	wget (for pasting with wget) [OPTION 1/2]
-	curl (for pasting with curl) [OPTION 2/2]
+	wget (for pasting with wget) OR
+	curl (for pasting with curl)
 
 
 You can use the following environment variables to temporarily or permanently change
@@ -34,4 +32,3 @@ the default options:
 	$PASTELANG (the default paste language, option -l)
 	$PASTEEXPIRE (the default paste expiration, option -e)
 	$PASTENAME (the default name of the paster, option -n)
-	$PASTEUSER (the default user, used for personal bins, i.e. foobar.pastebin.com, option -u)
