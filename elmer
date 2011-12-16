@@ -14,27 +14,25 @@ my %opts = ();
 getopts('SL:E:o:123s:l:e:p:rn:t:u:D:cdxXhC', \%opts);
 
 my %defaults = (
-	paste_default => $ENV{'PASTEDEFAULT'},
-	paste1 => $ENV{'PASTE1'},
-	paste2 => $ENV{'PASTE2'},
-	paste3 => $ENV{'PASTE3'},
-	paste_lang => $ENV{'PASTELANG'},
-	paste_expire => $ENV{'PASTEEXPIRE'},
-	paste_name => $ENV{'PASTENAME'},
-	paste_user => $ENV{'PASTEUSER'}
+	paste_default => $ENV{PASTEDEFAULT},
+	paste1 => $ENV{PASTE1},
+	paste2 => $ENV{PASTE2},
+	paste3 => $ENV{PASTE3},
+	paste_lang => $ENV{PASTELANG},
+	paste_expire => $ENV{PASTEEXPIRE},
+	paste_name => $ENV{PASTENAME},
 );
 
-$defaults{'paste_default'} ||= 'codepad';
-$defaults{'paste1'} ||= 'sprunge';
-$defaults{'paste2'} ||= 'lodgeit';
-$defaults{'paste3'} ||= 'omp';
-$defaults{'paste_lang'} ||= 'plain';
-$defaults{'paste_expire'} ||= '1d';
-$defaults{'paste_name'} ||= 'anon';
-$defaults{'paste_user'} ||= '';
+$defaults{paste_default} ||= 'codepad';
+$defaults{paste1} ||= 'sprunge';
+$defaults{paste2} ||= 'lodgeit';
+$defaults{paste3} ||= 'omp';
+$defaults{paste_lang} ||= 'plain';
+$defaults{paste_expire} ||= '1d';
+$defaults{paste_name} ||= 'anon';
 
-if ($opts{'h'}) {
-	print	"elmer -- smell my code\n\n",
+if ($opts{h}) {
+	print	"elmer -- just glue it man\n\n",
 		
 		"Help options:\n",
 		"\t", '-h', "\t\t", 'print this help menu', "\n",
@@ -44,20 +42,19 @@ if ($opts{'h'}) {
 		"\t", '-o <service>', "\t", 'print options for service', "\n\n",
 		
 		"Paste options:\n",
-		"\t", '-s <service>', "\t", 'paste service (default: ', $defaults{'paste_default'}, ')', "\n",
-		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $defaults{'paste_lang'}, ')', "\n",
-		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $defaults{'paste_expire'}, ')', "\n",
+		"\t", '-s <service>', "\t", 'paste service (default: ', $defaults{paste_default}, ')', "\n",
+		"\t", '-l <lang>', "\t", 'syntax highlighting (default: ', $defaults{paste_lang}, ')', "\n",
+		"\t", '-e <expire>', "\t", 'paste expiration (default: ', $defaults{paste_expire}, ')', "\n",
 		"\t", '-p', "\t\t", 'private paste', "\n",
 		"\t", '-r', "\t\t", 'run paste', "\n",
 		"\t", '-t <title>', "\t", 'paste title', "\n",
-		"\t", '-n <name>', "\t", 'paster name (default: ', $defaults{'paste_name'}, ')', "\n",
-		"\t", '-u <user>', "\t", 'user (for personal bins; default: ', $defaults{'paste_user'}, ')', "\n",
+		"\t", '-n <name>', "\t", 'paster name (default: ', $defaults{paste_name}, ')', "\n",
 		"\t", '-D <desc>', "\t", 'paste description', "\n\n",
 		
 		"Quick service options:\n",
-		"\t", '-1', "\t\t", $defaults{'paste1'}, "\n",
-		"\t", '-2', "\t\t", $defaults{'paste2'}, "\n",
-		"\t", '-3', "\t\t", $defaults{'paste3'}, "\n\n",
+		"\t", '-1', "\t\t", $defaults{paste1}, "\n",
+		"\t", '-2', "\t\t", $defaults{paste2}, "\n",
+		"\t", '-3', "\t\t", $defaults{paste3}, "\n\n",
 		
 		"Input options:\n",
 		"\t", '-c', "\t\t", 'concatenate files', "\n",
@@ -70,37 +67,31 @@ if ($opts{'h'}) {
 		
 		'The following environment variables can be used to alter the defaults:', "\n",
 		"\t", '-s = $PASTEDEFAULT, -1 = $PASTE1, -2 = $PASTE2, -3 = $PASTE3,', "\n",
-		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTENAME, -u = $PASTEUSER', "\n";
+		"\t", '-l = $PASTELANG, -e = $PASTEEXPIRE, -n = $PASTENAME', "\n";
 	
 	exit(0);
 }
 
-if ($opts{'S'}) {
+if ($opts{S}) {
 	print	"Available services:\n",
 		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n",
-		"\t", 'pbcom', "\t\t", 'http://pastebin.com', "\t\t", 'Text', "\n",
-		"\t", 'pborg', "\t\t", 'http://pastebin.org', "\t\t", 'Text', "\n",
 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
 		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
-		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n",
-		"\t", 'fbca', "\t\t", 'http://filebin.ca', "\t\t", 'Files', "\n",
-		"\t", 'sudo', "\t\t", 'http://sudokode.net', "\t\t", 'Images', "\n";
+		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n";
 		
 	exit(0);
 }
 
-if ($opts{'o'}) {
+if ($opts{o}) {
 	my %options = (
 		codepad => 'language private run',
-		pbcom => 'language expiration private title user',
-		pborg => 'language expiration name',
 		lodgeit => 'language private',
 		rafb => 'language name description',
 		sprunge => 'language' );
 	
-	print "Available options for ", $opts{'o'}, ":\n\t";
-	my @opt = split(' ', $options{$opts{'o'}});
+	print "Available options for ", $opts{o}, ":\n\t";
+	my @opt = split(' ', $options{$opts{o}});
 	print join("\n\t", @opt), "\n";
 	
 	exit(0);
@@ -124,7 +115,7 @@ sub error {
 	exit($code) if $code;
 }
 
-sub check_prog($) {
+sub check_prog {
 	my $prog = shift;
 	
 	return 1 unless system("which $prog &>/dev/null");
@@ -132,7 +123,7 @@ sub check_prog($) {
 	return 0;
 }
 
-sub print_langs($$) {
+sub print_langs {
 	my $service = shift;
 	my %langs = %{$_[0]};
 	
@@ -145,7 +136,7 @@ sub print_langs($$) {
 	exit(0);
 }
 
-sub print_exp($$) {
+sub print_exp {
 	my $service = shift;
 	my %exp = %{$_[0]};
 	
@@ -160,7 +151,7 @@ sub print_exp($$) {
 	exit(0);
 }
 
-sub paste($$) {
+sub paste {
 	my $host = shift;
 	my $data = shift;
 	
@@ -170,56 +161,56 @@ sub paste($$) {
 	print $tmp $data;
 	close $tmp;
 	
-	if (not $opts{'C'} && check_prog('wget')) {
-		return `wget -qO - $host --post-file=$file`;
+	if (not $opts{C} && check_prog('wget')) {
+		return `wget -U 'Mozilla/5.0' -qO - $host --post-file=$file`;
 	} elsif (check_prog('curl')) {
-		return `cat $file | curl -is -H "Expect:" $host -d \@$file`;
+		return `cat $file | curl -A 'Mozilla/5.0' -is -H "Expect:" $host -d \@$file`;
 	} else {
-		error('Could not find wget or curl.', $errors{'program'});
+		error('Could not find wget or curl.', $errors{program});
 	}
 	
 	unlink $file;
 }
 
-sub paste_file($$) {
+sub paste_file {
 	my $host = shift;
 	my $data = shift;
 	
 	if (check_prog('curl')) {
 		return `curl -is $host -F $data`;
 	} else {
-		error('curl is required for omp, sudo, and fbca because wget does not support multipart/form-data', $errors{'program'});
+		error('curl is required for omploader because wget does not support multipart/form-data', $errors{program});
 	}
 }
 
-sub print_url($) {
+sub print_url {
 	my $url = shift;
 	
-	if ($opts{'x'} && not check_prog('xclip')) {
-		error('This options requires xclip.', $errors{'program'});
+	if ($opts{x} && not check_prog('xclip')) {
+		error('This options requires xclip.', $errors{program});
 	}
 	
 	if ($url =~ m/spam/) {
-		if ($opts{'x'}) { system("echo 'Spam test: $url' | xclip -i"); }
+		if ($opts{x}) { system("echo 'Spam test: $url' | xclip -i"); }
 		print "Spam test: $url\n";
 	} else {
-		if ($opts{'x'}) { system("echo $url | xclip -i"); }
+		if ($opts{x}) { system("echo $url | xclip -i"); }
 		print "Pasted: $url\n";
 	}
 }
 
-sub codepad($) {
+sub codepad {
 	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $run = $opts{'r'};
-	my $private = $opts{'p'};
+	my $lang = $opts{l} || $defaults{paste_lang};
+	my $run = $opts{r};
+	my $private = $opts{p};
 	
 	my %langs = ('plain', 'Plain Text', 'c', 'C', 'c++', 'C++', 'd', 'D', 'haskell', 'Haskell', 'lua', 'Lua', 'ocaml', 'OCaml', 'php', 'PHP', 'perl', 'Perl', 'python', 'Python', 'ruby', 'Ruby', 'scheme', 'Scheme', 'tcl', 'Tcl');
 	
 	print_langs('codepad', \%langs) if ($text eq 'langs'); 
 	
 	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for codepad.\nTry `elmer -L codepad`.", $errors{'language'}); }
+	if (not $langs{$lang}) { error("Language $lang not available for codepad.\nTry `elmer -L codepad`.", $errors{language}); }
 	else { $lang = $langs{$lang}; }
 	
 	if ($run) { $run = 'True'; }
@@ -234,91 +225,20 @@ sub codepad($) {
 	my $response = paste('http://codepad.org/', $data);
 	
 	if ($response =~ m{(http://codepad.org/\w+)}) { print_url($1); }
-	else { error('Paste failed!', $errors{'paste'}); }
+	else { error('Paste failed!', $errors{paste}); }
 }
 
-sub pbcom($) {
+sub lodgeit {
 	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $expiration = $opts{'e'} || $defaults{'paste_expire'};
-	my $private = $opts{'p'};	# 0 or 1
-	my $title = $opts{'t'};
-	my $user = $opts{'u'} || $defaults{'paste_user'};
-	
-	my %langs = ('plain', 1, 'action', 2, 'action3', 74, 'ada', 3, 'apache', 4, 'apple', 5, 'apt', 75, 'asm', 6, 'asp', 7, 'bash', 8, 'brainfuck', 79, 'c', 9, 'c#', 14, 'c++', 13, 'cmake', 83, 'cobol', 84, 'coldfusion', 15, 'css', 16, 'd', 17, 'delphi', 18, 'diff', 19, 'dos', 20, 'eiffel', 21, 'email', 88, 'erlang', 57, 'fortran', 22, 'freebasic', 23, 'gettext', 90, 'haskell', 60, 'html', 25, 'ini', 26, 'intercal', 95, 'java', 27, 'java5', 97, 'javascript', 28, 'latex', 62, 'lisp', 29, 'lua', 30, 'make', 106, 'matlab', 31, 'mirc', 66, 'modula3', 107, 'mxml', 108, 'mysql', 33, 'ojb-c', 35, 'ocaml', 36, 'pascal', 39, 'perl', 40, 'php', 41, 'powersh', 117, 'prolog', 119, 'python', 42, 'qbasic', 43, 'rails', 67, 'ruby', 45, 'scala', 125, 'scheme', 46, 'scilab', 126, 'smalltalk', 69, 'sql', 48, 'tcl', 49, 'unreal', 71, 'vb.net', 51, 'vim', 134, 'vbasic', 50, 'whois', 137, 'xml', 53, 'xorg', 139);
-	
-	my %expirations = ('never', 'N', '10min', '10M', '1h', '1H', '1d', '1D', '1m', '1M');
-	
-	if ($text eq 'langs') { print_langs('pbcom', \%langs); }
-	if ($text eq 'exp') { print_exp('pbcom', \%expirations); }
-	
-	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for pbcom.\nTry `elmer -L pbcom`.", $errors{'language'}); }
-	else { $lang = $langs{$lang}; }
-	
-	$expiration = lc $expiration;
-	if (not $expirations{$expiration}) { error("Expiration $expiration not available for pbcom.\nTry `elmer -E pbcom`.", $errors{'expire'}); }
-	else { $expiration = $expirations{$expiration}; }
-	
-	$text = uri_escape($text);
-	
-	my $data = "paste_format=$lang&paste_expire_date=$expiration&paste_private=$private&paste_name=$title&paste_code=$text&submit=submit";
-	
-	my $url = 'http://';
-	if ($user) { $url .= $user . '.'; }
-	$url .= 'pastebin.com/post.php';
-	my $response = paste($url, $data);
-	
-	if ($response =~ m{http://pastebin.com/spam.php\?i=(\w+)}) {
-		print_url("http://pastebin.com/spam.php?i=$1");
-		
-	} elsif ($response =~ m{http://pastebin.com/(\w+)} || $response =~ m/location: \/(\w+)/) {
-		print_url("http://pastebin.com/$1");
-		
-	} else { error('Paste failed!', $errors{'paste'}); }
-}
-
-sub pborg($) {
-	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $expiration = $opts{'e'} || $defaults{'paste_expire'};
-	my $name = $opts{'n'} || $defaults{'paste_name'};
-	
-	my %langs = ('plain', 'text', 'action', 'actionscript', 'ada', 'ada', 'apache', 'apache', 'apple', 'applescript', 'asm', 'asm', 'asp', 'asp', 'bash', 'bash', 'c', 'c', 'c++', 'cpp', 'c#', 'csharp', 'coldfusion', 'cfm', 'css', 'css', 'd', 'd', 'delphi', 'delphi', 'diff', 'diff', 'dos', 'dos', 'eiffel', 'eiffel', 'fortran', 'fortran', 'freebasic', 'freebasic', 'html', 'html4strict', 'ini', 'ini', 'java', 'java', 'javascript', 'javascript', 'lisp', 'lisp', 'lua', 'lua', 'matlab', 'matlab', 'mpasm', 'mpasm', 'mysql', 'mysql', 'nullsoft', 'nsis', 'obj-c', 'objc', 'ocaml', 'ocaml', 'openoffice', 'oobas', 'oracle8', 'oracle8', 'pascal', 'pascal', 'perl', 'perl', 'php', 'php', 'python', 'python', 'qbasic', 'qbasic', 'robots', 'robots', 'ruby', 'ruby', 'scheme', 'scheme', 'smarty', 'smarty', 'sql', 'sql', 'tcl', 'tcl', 'vbasic', 'vb', 'vb.net', 'vbnet', 'xml', 'xml');
-	
-	my %expirations = ('never', 'f', '1d', 'd', '1m', 'm');
-	
-	if ($text eq 'langs') { print_langs('pborg', \%langs); }
-	if ($text eq 'exp') { print_exp('pborg', \%expirations); }
-	
-	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for pborg.\nTry `elmer -L pborg`.", $errors{'language'}); }
-	else { $lang = $langs{$lang}; }
-	
-	$expiration = lc $expiration;
-	if (not $expirations{$expiration}) { error("Expiration $expiration not available for pborg.\nTry `elmer -E pborg`.", $errors{'expire'}); }
-	else { $expiration = $expirations{$expiration}; }
-	
-	$text = uri_escape($text);
-	
-	my $data = "format=$lang&code2=$text&poster=$name&expiry=$expiration&paste=Send";
-	my $response = paste('http://pastebin.org/pastebin.php', $data);
-	
-	if ($response =~ m{(http://pastebin.org/\d+)}) { print_url($1); }
-	else { error('Paste failed!', $errors{'paste'}); }
-}
-
-sub lodgeit($) {
-	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $private = $opts{'p'};	# on or NULL
+	my $lang = $opts{l} || $defaults{paste_lang};
+	my $private = $opts{p};	# on or NULL
 	
 	my %langs = ('plain', 'text', 'apache', 'apache', 'bash', 'bash', 'batch', 'bat', 'boo', 'boo', 'brainfuck', 'brainfuck', 'c', 'c', 'c#', 'csharp', 'c++', 'cpp', 'clojure', 'clojure', 'creole', 'creole', 'css', 'css', 'csv', 'csv', 'd', 'd', 'control', 'control', 'django', 'html+django', 'dylan', 'dylan', 'erlang', 'erlang', 'rhtml', 'rhtml', 'gas', 'gas', 'gcc', 'gcc-messages', 'genshi', 'genshi', 'gettext', 'gettext', 'opengl', 'glsl', 'go', 'go', 'haskell', 'haskell', 'html', 'html', 'ini', 'ini', 'irb', 'irb', 'io', 'io', 'irc', 'irc', 'java', 'java', 'javac', 'javac-messages', 'javascript', 'js', 'jsp', 'jsp', 'lighty', 'lighttpd', 'lithaskell', 'literate-haskell', 'llvm', 'llvm', 'lua', 'lua', 'mako', 'html+mako', 'matlab', 'matlab', 'matlab-sess', 'matlabsession', 'minid', 'minid', 'multi', 'multi', 'myghty', 'html+myghty', 'mysql', 'mysql', 'nasm', 'nasm', 'nginx', 'nginx', 'delphi', 'objectpascal', 'ocaml', 'ocaml', 'perl', 'perl', 'php', 'html+php', 'povray', 'povray', 'python', 'python', 'pycon', 'pycon', 'pytb', 'pytb', 'rst', 'rst', 'ruby', 'ruby', 'scala', 'scala', 'scheme', 'scheme', 'smalltalk', 'smalltalk', 'smarty', 'smarty', 'sources', 'sourceslist', 'sql', 'sql', 'squidconf', 'squidconf', 'tex', 'tex', 'diff', 'diff', 'vim', 'vim', 'xml', 'xml', 'xslt', 'xslt', 'yaml', 'yaml');
 	
 	if ($text eq 'langs') { print_langs('lodgeit', \%langs); }
 	
 	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for lodgeit.\nTry `elmer -L lodgeit`.", $errors{'language'}); }
+	if (not $langs{$lang}) { error("Language $lang not available for lodgeit.\nTry `elmer -L lodgeit`.", $errors{language}); }
 	else { $lang = $langs{$lang}; }
 	
 	$text = uri_escape($text);
@@ -331,21 +251,21 @@ sub lodgeit($) {
 	if ($response =~ m:/raw/(\d+): || $response =~ m{Location:.*/(\d+)}) {
 		print_url("http://paste.pocoo.org/show/$1/");
 		
-	} else { error('Paste failed!', $errors{'paste'}); }
+	} else { error('Paste failed!', $errors{paste}); }
 }
 
-sub rafb($) {
+sub rafb {
 	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
-	my $name = $opts{'n'} || $defaults{'paste_name'};
-	my $desc = $opts{'D'};
+	my $lang = $opts{l} || $defaults{paste_lang};
+	my $name = $opts{n} || $defaults{paste_name};
+	my $desc = $opts{D};
 	
 	my %langs = ('c89', 'C89', 'c', 'C', 'c++', 'C++', 'java', 'Java', 'pascal', 'Pascal', 'perl', 'Perl', 'php', 'PHP', 'pl/i', 'PL/I', 'python', 'Python', 'ruby', 'Ruby', 'sql', 'SQL', 'vb', 'VB', 'plain', 'Plain Text');
 	
 	if ($text eq 'langs') { print_langs('rafb', \%langs); }
 	
 	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for rafb.\nTry `elmer -L rafb`.", $errors{'language'}); }
+	if (not $langs{$lang}) { error("Language $lang not available for rafb.\nTry `elmer -L rafb`.", $errors{language}); }
 	else { $lang = $langs{$lang}; }
 	
 	$desc = uri_escape($desc) if $desc;
@@ -359,19 +279,19 @@ sub rafb($) {
 	my $response = paste('http://rafb.me/paste.php', $data);
 	if ($response =~ m{(http://www.rafb.me/results/\w+\.html)}i) {
 		print_url($1);
-	} else { error('Paste failed!', $errors{'paste'}); }
+	} else { error('Paste failed!', $errors{paste}); }
 }
 
-sub sprunge($) {
+sub sprunge {
 	my $text = shift;
-	my $lang = $opts{'l'} || $defaults{'paste_lang'};
+	my $lang = $opts{l} || $defaults{paste_lang};
 	
 	my %langs = ('plain', 'text', 'clojure', 'clojure', 'io', 'io', 'lua', 'lua', 'minid', 'minid', 'perl', 'perl', 'python', 'python', 'python3', 'python3', 'ruby', 'ruby', 'tcl', 'tcl', 'gas', 'gas', 'llvm', 'llvm', 'asm', 'nasm', 'ada', 'ada', 'c', 'c', 'c++', 'cpp', 'cython', 'cython', 'd', 'd', 'delphi', 'delphi', 'dylan', 'dylan', 'felix', 'felix', 'fortran', 'fortran', 'opengl', 'glsl', 'go', 'go', 'java', 'java', 'modula2', 'modula2', 'obj-c', 'objc', 'ooc', 'ooc', 'prolog', 'prolog', 'scala', 'scala', 'vala', 'vala', 'boo', 'boo', 'aspx-c#', 'aspx-cs', 'c#', 'csharp', 'aspx-vb', 'aspx-vb', 'vb.net', 'vbnet', 'lisp', 'cl', 'erlang', 'erlang', 'erl', 'erl', 'haskell', 'haskell', 'haskell-lit', 'lhs', 'ocaml', 'ocaml', 'scheme', 'scheme', 'matlab', 'matlab', 'mupad', 'mupad', 'numpy', 'numpy', 'rconsole', 'rconsole', 's', 's', 'abap', 'abap', 'apple', 'applescript', 'asymptote', 'asymptote', 'bash', 'bash', 'batch', 'bat', 'befunge', 'befunge', 'brainfuck', 'brainfuck', 'gherkin', 'gherkin', 'gnuplot', 'gnuplot', 'logtalk', 'logtalk', 'moocode', 'moocode', 'modelica', 'modelica', 'mysql', 'mysql', 'newspeak', 'newspeak', 'povray', 'pov', 'rebol', 'rebol', 'redcode', 'redcode', 'smalltalk', 'smalltalk', 'sql', 'sql', 'tcsh', 'tcsh', 'cheetah', 'cheetah', 'coldfusion', 'cfs', 'django', 'django', 'erb', 'erb', 'action', 'actionscript', 'action3', 'actionscript3', 'coffee', 'coffeescript', 'css', 'css', 'haml', 'haml', 'haxe', 'hx', 'html', 'html', 'javascript', 'javascript', 'mxml', 'mxml', 'obj-j', 'objj', 'php', 'php', 'sass', 'sass', 'xml', 'xml', 'xslt', 'xslt');
 	
 	if ($text eq 'langs') { print_langs('sprunge', \%langs); }
 	
 	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for sprunge.\nTry `elmer -L sprunge`.", $errors{'language'}); }
+	if (not $langs{$lang}) { error("Language $lang not available for sprunge.\nTry `elmer -L sprunge`.", $errors{language}); }
 	else { $lang = $langs{$lang}; }
 	
 	$text = uri_escape($text);
@@ -383,10 +303,10 @@ sub sprunge($) {
 		if ($lang) { print_url("$1?$lang"); }
 		else { print_url($1); }
 		
-	} else { error('Paste failed!', $errors{'paste'}); }
+	} else { error('Paste failed!', $errors{paste}); }
 }
 
-sub omp($) {
+sub omp {
 	my $file = shift;
 	
 	my $response = paste_file('http://ompldr.org/upload', "file1=\@'$file'");
@@ -394,78 +314,54 @@ sub omp($) {
 	if ($response =~ m{(http://ompldr.org/v\w+)}) { print_url($1); }
 }
 
-sub sudo($) {
-	my $image = shift;
-	
-	my $response = paste_file('http://sudokode.net/cgi-bin/imagepaste.cgi', "image=\@'$image'");
-	
-	if ($response =~ m{(http://sudokode.net/p/\d+)}) { print_url($1); }
-}
-
-sub fbca($) {
-	my $file = shift;
-	
-	my $response = paste_file('http://filebin.ca/upload.php', "file=\@'$file'");
-	
-	if ($response =~ m{(http://filebin.ca/\w+)/}) { print_url($1); }
-}
-
-sub find_service($) {
+sub find_service {
 	my $input = shift;
 	
-	given (lc $opts{'s'}) {
-		when ('codepad')		{ codepad($input); }
-		when ('pbcom')		{ pbcom($input); }
-		when ('pborg')		{ pborg($input); }
-		when ('lodgeit')		{ lodgeit($input); }
+	given (lc $opts{s}) {
+		when ('codepad')	{ codepad($input); }
+		when ('lodgeit')	{ lodgeit($input); }
 		when ('rafb')		{ rafb($input); }
-		when ('sprunge')		{ sprunge($input); }
+		when ('sprunge')	{ sprunge($input); }
 		when ('omp')		{ omp($input); }
-		when ('sudo')		{ sudo($input); }
-		when ('fbca')		{ fbca($input); }
-		default			{ error('Service ' . $opts{'s'} . ' not available.', $errors{'service'}); }
+		default				{ error('Service ' . $opts{s} . ' not available.', $errors{service}); }
 	}
 }
 
-if ($opts{'L'}) {
-	given (lc $opts{'L'}) {
-		when ('codepad')		{ codepad('langs'); }
-		when ('pbcom')		{ pbcom('langs'); }
-		when ('pborg')		{ pborg('langs'); }
-		when ('lodgeit')		{ lodgeit('langs'); }
+if ($opts{L}) {
+	given (lc $opts{L}) {
+		when ('codepad')	{ codepad('langs'); }
+		when ('lodgeit')	{ lodgeit('langs'); }
 		when ('rafb')		{ rafb('langs'); }
-		when ('sprunge')		{ sprunge('langs'); }
-		default			{ error('No languages for ' . $opts{'L'} . '.', $errors{'language'}); }
+		when ('sprunge')	{ sprunge('langs'); }
+		default				{ error('No languages for ' . $opts{L} . '.', $errors{language}); }
 	}
 	
 	exit(0);
 }
 
-if ($opts{'E'}) {
-	given (lc $opts{'E'}) {
-		when ('pbcom')		{ pbcom('exp'); }
-		when ('pborg')		{ pborg('exp'); }
-		default			{ error('No expirations for ' . $opts{'E'} . '.', $errors{'expire'}); }
+if ($opts{E}) {
+	given (lc $opts{E}) {
+		default			{ error('No expirations for ' . $opts{E} . '.', $errors{expire}); }
 	}
 	
 	exit(0);
 }
 
-if ($opts{'1'} && $defaults{'paste1'}) { $opts{'s'} = $defaults{'paste1'}; }
-elsif ($opts{'2'} && $defaults{'paste2'}) { $opts{'s'} = $defaults{'paste2'}; }
-elsif ($opts{'3'} && $defaults{'paste3'}) { $opts{'s'} = $defaults{'paste3'}; }
-elsif (not $opts{'s'} && $defaults{'paste_default'}) { $opts{'s'} = $defaults{'paste_default'}; }
+if ($opts{1} && $defaults{paste1}) { $opts{s} = $defaults{paste1}; }
+elsif ($opts{2} && $defaults{paste2}) { $opts{s} = $defaults{paste2}; }
+elsif ($opts{3} && $defaults{paste3}) { $opts{s} = $defaults{paste3}; }
+elsif (not $opts{s} && $defaults{paste_default}) { $opts{s} = $defaults{paste_default}; }
 
 # Same with file permissions: -d = 1, -c = 2, -X = 4
 my $method = 0;
-if ($opts{'d'}) { $method += 1; }
-if ($opts{'c'}) { $method += 2; }
-if ($opts{'X'}) { $method += 4; }
+if ($opts{d}) { $method += 1; }
+if ($opts{c}) { $method += 2; }
+if ($opts{X}) { $method += 4; }
 
 my $input = '';
 given ($method) {
 	when (0) {
-		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
+		if ($opts{s} eq 'omp') {
 			foreach(@ARGV) {
 				if (-e $_) { find_service($_); }
 				else { error("$_ does not exist."); }
@@ -479,7 +375,7 @@ given ($method) {
 			else { error("$_ does not exist."); }
 			
 			chomp($input);
-			if (not $input) { error('No input found.', $errors{'input'}); }
+			if (not $input) { error('No input found.', $errors{input}); }
 			find_service($input);
 		}
 	}
@@ -490,8 +386,8 @@ given ($method) {
 	}
 	
 	when (2) {
-		if ($opts{'s'} eq 'omp' || $opts{'s'} eq 'sudo' || $opts{'s'} eq 'fbca') {
-			error('Cannot concatenate files when using omp or sudo.', $errors{'service'});
+		if ($opts{s} eq 'omp') {
+			error('Cannot concatenate files when using omploader', $errors{service});
 		}
 		
 		foreach (@ARGV) {
@@ -514,30 +410,30 @@ given ($method) {
 		}
 		
 		chomp($input);
-		if (not $input) { error('No input found.', $errors{'input'}); }
+		if (not $input) { error('No input found.', $errors{input}); }
 		find_service($input);
 	}
 	
-	when (3) { error('Cannot concatenate stdin...', $errors{'input'}); }
+	when (3) { error('Cannot concatenate stdin...', $errors{input}); }
 	
 	when (4) {
 		if (not check_prog('xclip')) {
-			error('This option requires xclip', $errors{'program'});
+			error('This option requires xclip', $errors{program});
 		}
 		
 		$input = `xclip -o`;
 		chomp($input);
-		if (not $input) { error('No input found.', $errors{'input'}); }
+		if (not $input) { error('No input found.', $errors{input}); }
 		
 		find_service($input);
 	}
 	
-	when (5) { error('Cannot read from stdin AND xclip...', $errors{'input'}); }
+	when (5) { error('Cannot read from stdin AND xclip...', $errors{input}); }
 	
-	when (6) { error('Cannot concatenate xclip data...', $errors{'input'}); }
+	when (6) { error('Cannot concatenate xclip data...', $errors{input}); }
 	
-	when (7) { error('Make up your mind. Cannot read from stdin AND xclip OR concatenate data from EITHER...', $errors{'input'}); }
+	when (7) { error('Make up your mind. Cannot read from stdin AND xclip OR concatenate data from EITHER...', $errors{input}); }
 	
-	default { error('No input found.', $errors{'input'}); }
+	default { error('No input found.', $errors{input}); }
 }
 
