@@ -33,6 +33,8 @@ $defaults{paste_name} ||= 'anon';
 
 if ($opts{h}) {
 	print	"elmer -- just glue it man\n\n",
+
+		"Usage: elmer [OPTIONS] [<FILE 1> [FILE 2] ... [FILE N]]\n\n",
 		
 		"Help options:\n",
 		"\t", '-h', "\t\t", 'print this help menu', "\n",
