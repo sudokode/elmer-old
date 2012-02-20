@@ -311,9 +311,9 @@ sub sprunge {
 sub omp {
 	my $file = shift;
 	
-	my $response = paste_file('http://ompldr.org/upload', "file1=\@'$file'");
+	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
 	
-	if ($response =~ m{(http://ompldr.org/v\w+)}) { print_url($1); }
+	if ($response =~ m{(http://omploader.org/v\w+)}) { print_url($1); }
 }
 
 sub find_service {
