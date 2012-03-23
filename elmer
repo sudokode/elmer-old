@@ -80,7 +80,7 @@ if ($opts{S}) {
 		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
 		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
-		"\t", 'omp', "\t\t", 'http://omploader.org', "\t\t", 'Files', "\n";
+		"\t", 'omp', "\t\t", 'http://ompldr.org', "\t\t", 'Files', "\n";
 		
 	exit(0);
 }
@@ -181,7 +181,7 @@ sub paste_file {
 	if (check_prog('curl')) {
 		return `curl -is $host -F $data`;
 	} else {
-		error('curl is required for omploader because wget does not support multipart/form-data', $errors{program});
+		error('curl is required for ompldr because wget does not support multipart/form-data', $errors{program});
 	}
 }
 
@@ -226,7 +226,7 @@ sub codepad {
 	my $data = "run=$run&lang=$lang&private=$private&code=$text&submit=Submit";
 	my $response = paste('http://codepad.org/', $data);
 	
-	if ($response =~ m{(http://codepad.org/\w+)}) { print_url($1); }
+	if ($response =~ m{(http://codepad\.org/\w+)}) { print_url($1); }
 	else { error('Paste failed!', $errors{paste}); }
 }
 
@@ -279,7 +279,7 @@ sub rafb {
 	$data .= "&text=$text";
 	
 	my $response = paste('http://rafb.me/paste.php', $data);
-	if ($response =~ m{(http://www.rafb.me/results/\w+\.html)}i) {
+	if ($response =~ m{(http://www\.rafb\.me/results/\w+\.html)}i) {
 		print_url($1);
 	} else { error('Paste failed!', $errors{paste}); }
 }
@@ -301,7 +301,7 @@ sub sprunge {
 	my $data = "sprunge=$text";
 	my $response = paste('http://sprunge.us/', $data);
 	
-	if ($response =~ m{(http://sprunge.us/\w+)}) {
+	if ($response =~ m{(http://sprunge\.us/\w+)}) {
 		if ($lang) { print_url("$1?$lang"); }
 		else { print_url($1); }
 		
@@ -311,9 +311,9 @@ sub sprunge {
 sub omp {
 	my $file = shift;
 	
-	my $response = paste_file('http://omploader.org/upload', "file1=\@'$file'");
+	my $response = paste_file('http://ompldr.org/upload', "file1=\@'$file'");
 	
-	if ($response =~ m{(http://omploader.org/v\w+)}) { print_url($1); }
+	if ($response =~ m{(http://ompldr\.org/v\w+)}) { print_url($1); }
 }
 
 sub find_service {
@@ -389,7 +389,7 @@ given ($method) {
 	
 	when (2) {
 		if ($opts{s} eq 'omp') {
-			error('Cannot concatenate files when using omploader', $errors{service});
+			error('Cannot concatenate files when using ompldr', $errors{service});
 		}
 		
 		foreach (@ARGV) {
