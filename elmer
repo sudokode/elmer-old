@@ -25,7 +25,7 @@ my %defaults = (
 
 $defaults{paste_default} ||= 'codepad';
 $defaults{paste1} ||= 'sprunge';
-$defaults{paste2} ||= 'lodgeit';
+$defaults{paste2} ||= 'rafb';
 $defaults{paste3} ||= 'omp';
 $defaults{paste_lang} ||= 'plain';
 $defaults{paste_expire} ||= '1d';
@@ -77,7 +77,6 @@ if ($opts{h}) {
 if ($opts{S}) {
 	print	"Available services:\n",
 		"\t", 'codepad', "\t\t", 'http://codepad.org', "\t\t", 'Text', "\n",
-		"\t", 'lodgeit', "\t\t", 'http://paste.pocoo.org', "\t\t", 'Text', "\n",
 		"\t", 'rafb', "\t\t", 'http://rafb.me', "\t\t\t", 'Text', "\n",
 		"\t", 'sprunge', "\t\t", 'http://sprunge.us', "\t\t", 'Text', "\n",
 		"\t", 'omp', "\t\t", 'http://ompldr.org', "\t\t", 'Files', "\n";
@@ -88,7 +87,6 @@ if ($opts{S}) {
 if ($opts{o}) {
 	my %options = (
 		codepad => 'language private run',
-		lodgeit => 'language private',
 		rafb => 'language name description',
 		sprunge => 'language' );
 	
@@ -230,32 +228,6 @@ sub codepad {
 	else { error('Paste failed!', $errors{paste}); }
 }
 
-sub lodgeit {
-	my $text = shift;
-	my $lang = $opts{l} || $defaults{paste_lang};
-	my $private = $opts{p};	# on or NULL
-	
-	my %langs = ('plain', 'text', 'apache', 'apache', 'bash', 'bash', 'batch', 'bat', 'boo', 'boo', 'brainfuck', 'brainfuck', 'c', 'c', 'c#', 'csharp', 'c++', 'cpp', 'clojure', 'clojure', 'creole', 'creole', 'css', 'css', 'csv', 'csv', 'd', 'd', 'control', 'control', 'django', 'html+django', 'dylan', 'dylan', 'erlang', 'erlang', 'rhtml', 'rhtml', 'gas', 'gas', 'gcc', 'gcc-messages', 'genshi', 'genshi', 'gettext', 'gettext', 'opengl', 'glsl', 'go', 'go', 'haskell', 'haskell', 'html', 'html', 'ini', 'ini', 'irb', 'irb', 'io', 'io', 'irc', 'irc', 'java', 'java', 'javac', 'javac-messages', 'javascript', 'js', 'jsp', 'jsp', 'lighty', 'lighttpd', 'lithaskell', 'literate-haskell', 'llvm', 'llvm', 'lua', 'lua', 'mako', 'html+mako', 'matlab', 'matlab', 'matlab-sess', 'matlabsession', 'minid', 'minid', 'multi', 'multi', 'myghty', 'html+myghty', 'mysql', 'mysql', 'nasm', 'nasm', 'nginx', 'nginx', 'delphi', 'objectpascal', 'ocaml', 'ocaml', 'perl', 'perl', 'php', 'html+php', 'povray', 'povray', 'python', 'python', 'pycon', 'pycon', 'pytb', 'pytb', 'rst', 'rst', 'ruby', 'ruby', 'scala', 'scala', 'scheme', 'scheme', 'smalltalk', 'smalltalk', 'smarty', 'smarty', 'sources', 'sourceslist', 'sql', 'sql', 'squidconf', 'squidconf', 'tex', 'tex', 'diff', 'diff', 'vim', 'vim', 'xml', 'xml', 'xslt', 'xslt', 'yaml', 'yaml');
-	
-	if ($text eq 'langs') { print_langs('lodgeit', \%langs); }
-	
-	$lang = lc $lang;
-	if (not $langs{$lang}) { error("Language $lang not available for lodgeit.\nTry `elmer -L lodgeit`.", $errors{language}); }
-	else { $lang = $langs{$lang}; }
-	
-	$text = uri_escape($text);
-	
-	my $data = "code=$text&language=$lang&";
-	if ($private) { $data .= 'private=on&'; }
-	$data .= 'submit=Paste!';
-	my $response = paste('http://paste.pocoo.org/', $data);
-	
-	if ($response =~ m:/raw/(\d+): || $response =~ m{Location:.*/(\d+)}) {
-		print_url("http://paste.pocoo.org/show/$1/");
-		
-	} else { error('Paste failed!', $errors{paste}); }
-}
-
 sub rafb {
 	my $text = shift;
 	my $lang = $opts{l} || $defaults{paste_lang};
@@ -321,7 +293,6 @@ sub find_service {
 	
 	given (lc $opts{s}) {
 		when ('codepad')	{ codepad($input); }
-		when ('lodgeit')	{ lodgeit($input); }
 		when ('rafb')		{ rafb($input); }
 		when ('sprunge')	{ sprunge($input); }
 		when ('omp')		{ omp($input); }
@@ -332,7 +303,6 @@ sub find_service {
 if ($opts{L}) {
 	given (lc $opts{L}) {
 		when ('codepad')	{ codepad('langs'); }
-		when ('lodgeit')	{ lodgeit('langs'); }
 		when ('rafb')		{ rafb('langs'); }
 		when ('sprunge')	{ sprunge('langs'); }
 		default				{ error('No languages for ' . $opts{L} . '.', $errors{language}); }
