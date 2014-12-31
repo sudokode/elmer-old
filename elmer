@@ -6,6 +6,7 @@
 
 use warnings;
 use strict;
+no warnings 'experimental::smartmatch';
 use feature 'switch';
 use Getopt::Std;
 use URI::Escape;
